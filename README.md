@@ -1,30 +1,19 @@
 # SHIELD®
-### Structured Website Security & Resilience Assessment Framework
+### Security Hardening & Infrastructure Exposure Lifecycle Diagnostics Framework
 
-> **SAFE-by-default · Non-destructive · Actionable**  
-> A systematic black-box security assessment toolkit for web applications and WordPress sites.
+> A systematic black-box security assessment toolkit for web applications.
 
 ---
 
 ## What is SHIELD?
 
-SHIELD is an automated, command-line security assessment framework that evaluates a website's security posture across six structured layers — from HTTP headers and TLS configuration through to active backdoor detection and infrastructure exposure.
+SHIELD is a black-box, command-line security assessment framework for web applications and WordPress sites. It systematically probes a target across six security layers — from TLS and HTTP headers through to active backdoor detection and infrastructure exposure — then produces a graded, client-ready Markdown report (A–F) with per-finding severity, remediation code, and OWASP references.
 
-It is designed for security professionals, DevOps engineers, and site owners who need to:
-
-- Run repeatable, evidence-based security health checks
-- Identify configuration gaps before attackers do
-- Generate structured, client-ready reports with graded findings
-- Validate security hardening measures over time
-- Detect active compromises: injected malware, webshells, SEO spam, cloaking
-
-SHIELD produces a graded Markdown report (A–F) with per-finding severity, remediation code examples, and OWASP references.
+No server access required. No exploitation. No destructive testing.
 
 ---
 
 ## Assessment Methodology
-
-SHIELD follows a six-step structured methodology. Each step targets a distinct security layer and outputs machine-readable JSON consumed by the report generator.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -37,23 +26,14 @@ SHIELD follows a six-step structured methodology. Each step targets a distinct s
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Step 1 — Scope & Target Validation
-Confirms reachability of the target, resolves the canonical URL, detects the technology stack (including WordPress), and establishes the assessment baseline. WordPress detection gates all WP-specific checks in later steps.
-
-### Step 2 — External Hardening
-Evaluates everything visible from the outside before any login: HTTP security headers (CSP, HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy), TLS protocol version and cipher strength, certificate validity and expiry, OCSP stapling, HTTP-to-HTTPS redirect enforcement, and server/PHP version disclosure in response headers.
-
-### Step 3 — Authentication & Session Controls
-Tests the login surface and session lifecycle: rate limiting and account lockout on login endpoints, brute force protection (opt-in active test via `--brute-force`), CAPTCHA presence, session cookie security flags (Secure, HttpOnly, SameSite), session fixation, session rotation after authentication, timeout enforcement, and username enumeration via login error differentiation.
-
-### Step 4 — Authorization & Access Control
-Probes what authenticated and unauthenticated users can reach: admin path exposure, API authentication enforcement, CORS policy correctness, directory listing, GraphQL introspection, cloud storage bucket access, file upload type validation, backup and archive file exposure, path traversal, dangerous HTTP method availability (PUT, DELETE, TRACE), and WordPress-specific checks — wp-config exposure, debug log accessibility, plugin vulnerability detection, and XML-RPC attack surface.
-
-### Step 5 — Defensive Controls & Backdoor Detection
-Validates implementation of OWASP-recommended controls (open redirect prevention, verbose error suppression, Subresource Integrity, third-party script auditing, phpinfo exposure) and performs active backdoor detection: obfuscated JavaScript scanning, hidden iframe detection, cryptominer fingerprinting, SEO spam cloaking (Googlebot vs normal UA diff), known webshell path probing with timing analysis, sensitive file exposure (`.env`, `.git`, private keys, credentials), and threat intelligence lookups (Spamhaus ZEN/DBL, AbuseIPDB, Google Safe Browsing).
-
-### Step 6 — Infrastructure & Exposure Surface
-Maps the external attack surface beyond the web application: DNS integrity (SPF, DMARC, MX hijack, wildcard DNS, suspicious TXT records), certificate transparency log analysis (unexpected SANs, recently issued certs), subdomain enumeration, WAF fingerprinting, shared hosting detection, open port scanning (backdoor listener ports, internet-exposed databases, admin panels), and DNS resolution consistency checks.
+| Step | Focus |
+|------|-------|
+| **1 — Scope** | Resolves target, detects WordPress, establishes baseline |
+| **2 — External Hardening** | HTTP security headers, TLS/cipher strength, certificate validity, HTTPS enforcement, server version disclosure |
+| **3 — Auth & Session** | Login rate limiting, brute force lockout, CAPTCHA, cookie flags, session fixation/rotation, timeout, username enumeration |
+| **4 — Authorization** | Admin paths, API auth, CORS, directory listing, file upload, backup exposure, path traversal, HTTP methods, WP config/plugins/XML-RPC |
+| **5 — Backdoor Detection** | Obfuscated JS, hidden iframes, cryptominers, SEO spam cloaking, webshell probing, exposed credentials/keys, threat intel (Spamhaus, AbuseIPDB, Google Safe Browsing) |
+| **6 — Infrastructure** | Open ports, DNS integrity (SPF/DMARC/MX), certificate transparency, subdomain enumeration, WAF fingerprinting, shared hosting |
 
 ---
 
@@ -136,8 +116,10 @@ Unauthorised scanning may violate computer misuse laws in your jurisdiction.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE)
+Copyright © 2026 Georges Bou Ghantous. All Rights Reserved. — see [LICENSE](LICENSE)
 
-<sub><i>© 2026 SHIELD®. All rights reserved. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://github.com/Georges034302"><i>Georges Bou Ghantous</i></a></i></sub>
+Use, reproduction, modification, and distribution require explicit written permission from the copyright holder.
+
+<sub><i>© 2026 SHIELD®. All rights reserved. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://github.com/Georges034302"><i>Georges Bou Ghantous</i></a></i></sub>
 
 ---
