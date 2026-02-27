@@ -11,6 +11,14 @@ echo "================================================"
 echo ""
 echo "Target(s): ${ARGS[*]}"
 echo "Output directory: $OUT"
+
+if [[ "${BRUTE_FORCE:-false}" == "true" ]]; then
+    echo ""
+    echo "⚠⚠⚠  BRUTE FORCE MODE ACTIVE  ⚠⚠⚠"
+    echo "  Only use against sites you own or have written authorisation for."
+    echo "  Max 10 attempts per target. Stops on first lockout."
+    echo ""
+fi
 echo ""
 
 # Clean and recreate output directory structure (ensures no stale results from previous scans)
@@ -33,6 +41,8 @@ STEPS=(
     "step2/cache_control.sh"
     "step2/exposure.sh"
     "step2/ocsp_stapling.sh"
+    "step2/server_version.sh"
+    "step2/php_version.sh"
     "step3/cookie_flags.sh"
     "step3/discover.sh"
     "step3/logout.sh"
@@ -41,6 +51,8 @@ STEPS=(
     "step3/timeout.sh"
     "step3/user_enumeration.sh"
     "step3/session_fixation.sh"
+    "step3/login_protection.sh"
+    "step3/brute_force_check.sh"
     "step4/access_control.sh"
     "step4/sensitive_files.sh"
     "step4/admin_paths.sh"
@@ -49,15 +61,22 @@ STEPS=(
     "step4/api_auth.sh"
     "step4/graphql.sh"
     "step4/cloud_storage.sh"
+    "step4/file_upload.sh"
+    "step4/backup_files.sh"
+    "step4/path_traversal.sh"
+    "step4/http_methods.sh"
     "step5/owasp_defensive.sh"
     "step5/verbose_errors.sh"
     "step5/open_redirect.sh"
     "step5/sri_check.sh"
     "step5/third_party_scripts.sh"
+    "step5/php_info.sh"
+    "step5/error_pages.sh"
     "step6/infra_exposure.sh"
     "step6/dns_hygiene.sh"
     "step6/subdomain_enum.sh"
     "step6/waf_fingerprint.sh"
+    "step6/shared_hosting.sh"
 )
 
 for script in "${STEPS[@]}"; do

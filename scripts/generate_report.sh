@@ -55,6 +55,34 @@ count_by_severity() {
     echo "$count"
 }
 
+# Function to count checks by status
+count_by_status() {
+    local status="$1"
+    local count=0
+    for json_file in "$INPUT_DIR"/step*/*.json; do
+        if [ -f "$json_file" ]; then
+            local c=$(jq -r "[.checks[] | select(.status == \"$status\")] | length" "$json_file" 2>/dev/null || echo "0")
+            count=$((count + c))
+        fi
+    done
+    echo "$count"
+}
+
+# Compute letter grade A-F from issue counts
+compute_grade() {
+    local crit=$1 high=$2 med=$3
+    if   [ "$crit" -ge 1 ];                        then echo "F"
+    elif [ "$high" -ge 5 ];                        then echo "D"
+    elif [ "$high" -ge 1 ] && [ "$med" -ge 3 ];   then echo "D"
+    elif [ "$high" -ge 3 ];                        then echo "D"
+    elif [ "$high" -ge 1 ];                        then echo "C"
+    elif [ "$med"  -ge 5 ];                        then echo "C"
+    elif [ "$med"  -ge 2 ];                        then echo "B"
+    elif [ "$med"  -ge 1 ];                        then echo "B+"
+    else                                                echo "A"
+    fi
+}
+
 # Get target URL - prefer step1/scope.json, fall back to first sorted JSON
 if [[ -f "$INPUT_DIR/step1/scope.json" ]]; then
     TARGET=$(jq -r '.target' "$INPUT_DIR/step1/scope.json" 2>/dev/null || echo "Unknown")
@@ -69,6 +97,9 @@ HIGH_COUNT=$(count_by_severity "HIGH")
 MEDIUM_COUNT=$(count_by_severity "MEDIUM")
 LOW_COUNT=$(count_by_severity "LOW")
 TOTAL_ISSUES=$((CRITICAL_COUNT + HIGH_COUNT + MEDIUM_COUNT + LOW_COUNT))
+PASS_COUNT=$(count_by_status "PASS")
+INFO_COUNT=$(count_by_status "INFO")
+GRADE=$(compute_grade "$CRITICAL_COUNT" "$HIGH_COUNT" "$MEDIUM_COUNT")
 
 # Generate report
 cat > "$OUTPUT_FILE" <<EOF
@@ -84,14 +115,19 @@ cat > "$OUTPUT_FILE" <<EOF
 
 This report presents the findings from a comprehensive security assessment conducted using the SHIELD (Structured Website Security & Resilience Assessment Framework) methodology.
 
+### Security Grade: **$GRADE**
+
+> Graded on: Critical (F) → High (C–D) → Medium (B–B+) → Clean (A)
+
 ### Overview
 
-| Risk Level | Count |
-|------------|-------|
+| Metric | Count |
+|--------|-------|
 | 🔴 Critical | $CRITICAL_COUNT |
 | 🟠 High | $HIGH_COUNT |
 | 🟡 Medium | $MEDIUM_COUNT |
 | 🔵 Low | $LOW_COUNT |
+| ✅ Passed | $PASS_COUNT |
 | **Total Issues** | **$TOTAL_ISSUES** |
 
 ### Risk Assessment
@@ -117,6 +153,27 @@ else
 **Low Risk**
 
 The target demonstrates good security practices with only minor or informational findings.
+
+EOF
+fi
+
+# Build priority action list from CRITICAL + HIGH findings
+PRIORITY_ITEMS=""
+for json_file in "$INPUT_DIR"/step*/*.json; do
+    if [ -f "$json_file" ]; then
+        items=$(jq -r '.checks[] | select((.status == "FAIL" or .status == "WARN") and (.severity == "CRITICAL" or .severity == "HIGH")) | "- **[\(.severity)]** \(.name): \(.found)"' "$json_file" 2>/dev/null || true)
+        [ -n "$items" ] && PRIORITY_ITEMS="$PRIORITY_ITEMS
+$items"
+    fi
+done
+
+if [ -n "$PRIORITY_ITEMS" ]; then
+    cat >> "$OUTPUT_FILE" <<EOF
+
+### Priority Actions
+
+The following Critical/High findings require immediate attention:
+$PRIORITY_ITEMS
 
 EOF
 fi
@@ -162,19 +219,19 @@ EOF
         CHECK_NAME=$(basename "$json_file" .json)
         
         # Get failed/warned checks
-        FAILED_CHECKS=$(jq -r '.checks[] | select(.status == "FAIL" or .status == "WARN")' "$json_file" 2>/dev/null)
+        ALL_CHECKS=$(jq -rc '.checks[]' "$json_file" 2>/dev/null)
+        FAILED_CHECKS=$(echo "$ALL_CHECKS" | jq -r 'select(.status == "FAIL" or .status == "WARN")' 2>/dev/null)
         
-        if [ -n "$FAILED_CHECKS" ]; then
+        if [ -n "$ALL_CHECKS" ]; then
+            SECTION_TITLE=$(echo "$CHECK_NAME" | tr '_' ' ' | sed 's/\b\(a-z\)/\u\1/g')
             cat >> "$OUTPUT_FILE" <<EOF
 
-#### $(echo "$CHECK_NAME" | tr '_' ' ' | sed 's/\b\(.\)/\u\1/g')
+#### ${CHECK_NAME//_/ }
 
 | Check | Status | Severity | Finding |
 |-------|--------|----------|---------|
 EOF
-            
-            echo "$FAILED_CHECKS" | jq -r '. | "| \(.name) | \(.status) | \(.severity) | \(.found) |"' >> "$OUTPUT_FILE"
-            
+            echo "$ALL_CHECKS" | jq -r '"| \(.name) | \(.status) | \(.severity) | \(.found) |"' >> "$OUTPUT_FILE"
             echo "" >> "$OUTPUT_FILE"
         fi
     done
@@ -274,4 +331,4 @@ EOF
 
 echo "✓ Report generated: $OUTPUT_FILE"
 echo ""
-echo "Summary: $TOTAL_ISSUES issues found ($CRITICAL_COUNT critical, $HIGH_COUNT high, $MEDIUM_COUNT medium, $LOW_COUNT low)"
+echo "Grade: $GRADE | $TOTAL_ISSUES issues ($CRITICAL_COUNT critical, $HIGH_COUNT high, $MEDIUM_COUNT medium, $LOW_COUNT low) | $PASS_COUNT passed"

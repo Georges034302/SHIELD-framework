@@ -698,5 +698,212 @@
       "https://www.trendmicro.com/vinfo/us/security/news/virtualization-and-cloud/cloud-security-101-what-is-cloud-misconfiguration",
       "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
     ]
+  },
+  "SEC-SRVVER-001": {
+    "title": "Web Server Version Exposed (EOL or Specific Version)",
+    "description": "The Server response header discloses the web server product and version number, including potentially end-of-life versions with known CVEs.",
+    "risk": "MEDIUM",
+    "impact": "Attackers can fingerprint the exact server version and target known CVEs without needing to probe for vulnerabilities — significantly lowering the skill bar for exploitation.",
+    "remediation": "Suppress or minimise the Server header:\n\nApache — suppress version:\n# In httpd.conf or apache2.conf:\nServerTokens Prod\nServerSignature Off\n# Result: Server: Apache\n\nNginx — suppress version:\n# In nginx.conf (http block):\nserver_tokens off;\n# To remove the header entirely, use nginx-headers-more module:\nmore_clear_headers 'Server';\n\nIIS:\nRemove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -filter 'system.webServer/security/requestFiltering' -name 'removeServerHeader'\n# Or via web.config:\n<system.webServer>\n  <security>\n    <requestFiltering removeServerHeader=\"true\" />\n  </security>\n</system.webServer>\n\nIf using EOL Apache 2.2/2.0 or Nginx <1.18:\n- Upgrade immediately: these versions have critical unpatched CVEs\n- Apache 2.4.x current: https://httpd.apache.org/\n- Nginx current stable: https://nginx.org/",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+      "https://httpd.apache.org/docs/current/mod/core.html#servertokens"
+    ]
+  },
+  "SEC-SRVVER-002": {
+    "title": "Server Product Name Exposed Without Version",
+    "description": "The Server header reveals the web server product name but not the version. While less risky than full version disclosure, it still aids attacker reconnaissance.",
+    "risk": "LOW",
+    "impact": "Attackers can focus their tooling and exploit attempts on the identified server product.",
+    "remediation": "Remove or replace the Server header entirely:\n\nNginx (with headers-more-nginx-module):\nmore_set_headers 'Server: ';\n\nApache (with mod_headers):\nHeader unset Server\nHeader always set Server \"webserver\"\n\nCloudflare / CDN: The CDN typically replaces the Server header automatically.\n\nFor hardening beyond header removal, consider:\n- Deploying a WAF to absorb fingerprinting attempts\n- Using a reverse proxy (Nginx in front of Apache) to normalize headers",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server"
+    ]
+  },
+  "SEC-PHP-001": {
+    "title": "End-of-Life PHP Version Exposed",
+    "description": "The X-Powered-By header reveals an end-of-life PHP version that no longer receives security updates, exposing the site to unpatched critical vulnerabilities.",
+    "risk": "CRITICAL",
+    "impact": "EOL PHP versions have numerous known CVEs with public exploits. Attackers actively scan for and exploit sites running PHP 5.x or 7.x.",
+    "remediation": "URGENT: Upgrade PHP and suppress version header:\n\n1. Upgrade PHP to current supported version:\n   - PHP 8.2 (supported until Dec 2026)\n   - PHP 8.3 (supported until Dec 2027)\n   \n   Ubuntu:\n   sudo add-apt-repository ppa:ondrej/php\n   sudo apt update && sudo apt install php8.3\n   \n   cPanel: PHP Manager > Switch PHP Version\n\n2. Suppress X-Powered-By header:\n   # php.ini:\n   expose_php = Off\n   \n   # .htaccess (Apache):\n   Header unset X-Powered-By\n   Header always unset X-Powered-By\n   \n   # Nginx:\n   fastcgi_hide_header X-Powered-By;\n\n3. After upgrading, test for compatibility:\n   php -l your_file.php\n   Run your test suite before deploying\n\n4. Check for deprecated functions:\n   - mysql_* functions (removed in PHP 7.0) → use PDO or mysqli\n   - ereg_* functions → use preg_*",
+    "references": [
+      "https://www.php.net/supported-versions.php",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework"
+    ]
+  },
+  "SEC-PHP-002": {
+    "title": "PHP Version or Technology Stack Exposed",
+    "description": "The X-Powered-By header reveals PHP is in use and may expose the version number, aiding attacker reconnaissance.",
+    "risk": "LOW",
+    "impact": "Knowing the technology stack helps attackers select targeted exploits and tools.",
+    "remediation": "Suppress the X-Powered-By header:\n\nphp.ini:\nexpose_php = Off\n\nApache .htaccess:\nHeader unset X-Powered-By\nHeader always unset X-Powered-By\n\nNginx:\nlocation ~ \\.php$ {\n    fastcgi_hide_header X-Powered-By;\n    ...\n}\n\nFor Express/Node.js (also sends X-Powered-By: Express):\napp.disable('x-powered-by');\n// Or with helmet:\napp.use(helmet());\n\nVerify after change:\ncurl -I https://yourdomain.com | grep -i powered",
+    "references": [
+      "https://www.php.net/manual/en/ini.core.php#ini.expose-php"
+    ]
+  },
+  "SEC-LOGIN-001": {
+    "title": "Login Page Missing CAPTCHA",
+    "description": "The login endpoint lacks a CAPTCHA, allowing automated credential stuffing and enumeration attacks without any human verification gate.",
+    "risk": "MEDIUM",
+    "impact": "Automated tools can attempt thousands of login combinations without any friction, enabling credential stuffing from leaked password databases.",
+    "remediation": "Add CAPTCHA to the login form:\n\nWordPress:\n- Install Cloudflare Turnstile, Google reCAPTCHA, or hCaptcha plugin\n- Recommended: Cloudflare Turnstile (privacy-friendly, free)\n  https://wordpress.org/plugins/simple-cloudflare-turnstile/\n\nCustom PHP:\n<?php\n// Google reCAPTCHA v3\n$recaptcha_secret = 'YOUR_SECRET_KEY';\n$response = $_POST['g-recaptcha-response'];\n$verify = file_get_contents(\"https://www.google.com/recaptcha/api/siteverify?secret=$recaptcha_secret&response=$response\");\n$result = json_decode($verify);\nif (!$result->success || $result->score < 0.5) {\n    die('CAPTCHA verification failed');\n}\n\nNode.js / Express (with hCaptcha):\nnpm install hcaptcha\nconst { verify } = require('hcaptcha');\nrouter.post('/login', async (req, res) => {\n  const { success } = await verify(process.env.HCAPTCHA_SECRET, req.body['h-captcha-response']);\n  if (!success) return res.status(403).json({ error: 'CAPTCHA failed' });\n  // ... proceed with login\n});",
+    "references": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html",
+      "https://owasp.org/www-community/Controls/Blocking_Brute_Force_Attacks"
+    ]
+  },
+  "SEC-LOGIN-002": {
+    "title": "Login Endpoint Has No Rate Limiting or Account Lockout",
+    "description": "The login endpoint does not implement rate limiting or account lockout after repeated failures, allowing unlimited automated login attempts.",
+    "risk": "HIGH",
+    "impact": "Attackers can perform unlimited brute force or credential stuffing attacks. With common password lists, accounts using weak passwords will be compromised.",
+    "remediation": "Implement multiple layers of login protection:\n\n1. Account lockout (WordPress):\n   Install 'Limit Login Attempts Reloaded' or 'WP Cerber Security'\n   Settings: lock after 3-5 failures, lockout for 15-30 minutes\n\n2. Rate limiting (Nginx):\n   http {\n     limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;\n   }\n   location /wp-login.php {\n     limit_req zone=login burst=3 nodelay;\n     limit_req_status 429;\n   }\n\n3. Rate limiting (Apache):\n   # mod_evasive\n   <IfModule mod_evasive20.c>\n     DOSPageCount 5\n     DOSPageInterval 1\n     DOSBlockingPeriod 600\n   </IfModule>\n\n4. Express/Node.js:\n   npm install express-rate-limit\n   const rateLimit = require('express-rate-limit');\n   app.use('/login', rateLimit({\n     windowMs: 15 * 60 * 1000,\n     max: 10,\n     message: { error: 'Too many login attempts' }\n   }));\n\n5. Additional: enable 2FA, use CAPTCHA, log all failures, alert on spike",
+    "references": [
+      "https://owasp.org/www-community/controls/Blocking_Brute_Force_Attacks",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#account-lockout"
+    ]
+  },
+  "SEC-BRUTE-002": {
+    "title": "No Account Lockout After Repeated Failed Login Attempts",
+    "description": "The login endpoint does not lock out accounts or block IPs after 10 consecutive failed login attempts, confirming the absence of brute force protection.",
+    "risk": "HIGH",
+    "impact": "Confirmed: an attacker can automate unlimited login attempts. Accounts with weak or common passwords will be compromised via brute force or credential stuffing.",
+    "remediation": "CONFIRMED GAP — implement lockout immediately:\n\nWordPress:\n1. Install 'Limit Login Attempts Reloaded':\n   - Lock after: 3 attempts\n   - Lockout duration: 20 minutes\n   - Extended lockout after 4 lockouts: 24 hours\n   - Notify by email: Yes\n\n2. Add to wp-config.php for additional protection:\ndefine('DISALLOW_FILE_EDIT', true);\n\n3. Use Wordfence (free) for comprehensive brute force protection including:\n   - IP-level lockout\n   - Country blocking\n   - 2FA enforcement\n\nNginx rate limiting:\nlimit_req_zone $binary_remote_addr zone=login:10m rate=3r/m;\nserver {\n  location /wp-login.php {\n    limit_req zone=login burst=2 nodelay;\n    limit_req_status 429;\n  }\n  location /xmlrpc.php { deny all; }\n}\n\nCloudflare (free tier):\n- Security > WAF > Create Rule\n- Condition: URI Path = /wp-login.php\n- Action: Rate Limit (5 requests / 60 seconds)",
+    "references": [
+      "https://owasp.org/www-community/controls/Blocking_Brute_Force_Attacks",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#account-lockout"
+    ]
+  },
+  "SEC-BRUTE-003": {
+    "title": "Default Credential Login Succeeded",
+    "description": "A login attempt using common default credentials succeeded. The site is accessible using trivially guessable username/password combinations.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: An attacker can log in as an administrator immediately using publicly known default credentials, with full access to site administration.",
+    "remediation": "IMMEDIATE ACTION REQUIRED:\n\n1. Change the password RIGHT NOW:\n   WordPress Dashboard > Users > Your Profile > New Password\n   Use a strong randomly generated password (min 20 chars)\n\n2. Check for unauthorised admin accounts:\n   Dashboard > Users > All Users (check for unfamiliar administrators)\n\n3. Rotate ALL credentials:\n   - WordPress admin password\n   - Database password (wp-config.php DB_PASSWORD)\n   - Hosting control panel password\n   - FTP/SFTP credentials\n   - Email account passwords\n\n4. Audit recent login history:\n   Install 'WP Security Audit Log' and review recent logins\n   Check server access logs for suspicious activity\n\n5. Scan for malware/backdoors:\n   Install Wordfence > Full Scan\n   Or use external scanner: https://sitecheck.sucuri.net/\n\n6. Implement lockout (see SEC-BRUTE-002) to prevent future attacks\n\n7. Enable 2FA immediately:\n   Wordfence > Login Security > Two-Factor Authentication",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/02-Testing_for_Default_Credentials",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-UPLOAD-001": {
+    "title": "File Upload Endpoint Accessible Without Type Validation",
+    "description": "A file upload endpoint is accessible and does not appear to restrict file types. This could allow upload of malicious files (PHP shells, malware).",
+    "risk": "HIGH",
+    "impact": "If an attacker can upload a PHP or executable file, they gain Remote Code Execution (RCE) on the server, leading to complete server compromise.",
+    "remediation": "Implement strict file upload controls:\n\n1. Whitelist allowed file types only:\n   $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];\n   if (!in_array($_FILES['file']['type'], $allowed_types)) {\n       die('File type not allowed');\n   }\n   \n   // Also check file extension AND magic bytes (never trust MIME from request):\n   $finfo = finfo_open(FILEINFO_MIME_TYPE);\n   $mime = finfo_file($finfo, $_FILES['file']['tmp_name']);\n\n2. Never store uploads inside web root:\n   Move to /var/uploads/ (outside /var/www/html/)\n   Serve via a PHP proxy that sets correct Content-Disposition header\n\n3. Rename uploaded files:\n   $filename = bin2hex(random_bytes(16)) . '.' . $safe_extension;\n\n4. Block PHP execution in uploads directory:\n   # .htaccess in uploads dir:\n   php_flag engine off\n   <FilesMatch '\\.(php|php3|php4|phtml|pl|py|jsp|asp)$'>\n       Order Deny,Allow\n       Deny from all\n   </FilesMatch>\n\n5. Scan uploaded files with ClamAV or similar",
+    "references": [
+      "https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload",
+      "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-UPLOAD-002": {
+    "title": "Server Accepts Executable File Uploads (RCE Risk)",
+    "description": "The upload endpoint accepted a file with a PHP MIME type without rejection, indicating potential for Remote Code Execution via webshell upload.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: An attacker can upload a PHP webshell (e.g., <?php system($_GET['cmd']); ?>) and gain full command execution on the server.",
+    "remediation": "URGENT — disable executable uploads immediately:\n\n1. Add to .htaccess in uploads directory:\n   php_flag engine off\n   Options -ExecCGI\n   AddType text/plain .php .php3 .php4 .phtml .pl .py .cgi\n   <FilesMatch '\\.(php|phtml|php3|php4|js|exe|py|sh|cgi|asp|aspx)$'>\n       Order Deny,Allow\n       Deny from all\n   </FilesMatch>\n\n2. Nginx — block PHP execution in uploads:\n   location ~* /wp-content/uploads/.*\\.php$ {\n       deny all;\n   }\n\n3. Validate file type using PHP:\n   // Check actual file content, not just extension or MIME\n   $finfo = new finfo(FILEINFO_MIME_TYPE);\n   $mime = $finfo->file($_FILES['file']['tmp_name']);\n   $safe_mimes = ['image/jpeg', 'image/png', 'application/pdf'];\n   if (!in_array($mime, $safe_mimes)) {\n       throw new Exception('Invalid file type');\n   }\n\n4. Scan existing uploads for webshells:\n   find /var/www/html/wp-content/uploads -name '*.php' -exec cat {} \\;\n   Use Wordfence > Full Scan\n\n5. Audit recent uploads and check server access logs for exploitation attempts",
+    "references": [
+      "https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload",
+      "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-BACKUP-001": {
+    "title": "Backup or Archive Files Exposed in Web Root",
+    "description": "Backup files (.zip, .sql, .tar.gz) or log files are accessible in the web root, potentially exposing source code, database dumps, credentials, and system paths.",
+    "risk": "HIGH",
+    "impact": "Database backups expose all user data, hashed passwords, and site content. Source code archives reveal application logic and credentials hardcoded in config files.",
+    "remediation": "Remove exposed files and prevent future exposure:\n\n1. Remove the files immediately:\n   rm /var/www/html/backup.zip\n   rm /var/www/html/database.sql\n   rm /var/www/html/wp-config.php.bak\n\n2. Move backups outside web root:\n   # Good: /var/backups/mysite/ (not accessible via HTTP)\n   # Bad: /var/www/html/backups/ (accessible via HTTP)\n\n3. Block access to backup file extensions via .htaccess:\n   <FilesMatch '\\.(sql|bak|backup|zip|tar|gz|old|orig|swp|~)$'>\n       Order Deny,Allow\n       Deny from all\n   </FilesMatch>\n\n4. Nginx:\n   location ~* \\.(sql|bak|backup|zip|tar\\.gz|old)$ {\n       deny all;\n   }\n\n5. Restrict debug.log:\n   # In wp-config.php:\n   define('WP_DEBUG', false);\n   define('WP_DEBUG_LOG', false);\n   define('WP_DEBUG_DISPLAY', false);\n\n6. Set up automated cleanup: add cron job to remove old backups from web-accessible locations",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+      "https://cheatsheetseries.owasp.org/cheatsheets/PHP_Configuration_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-BACKUP-002": {
+    "title": "Backup Files Contain Sensitive Credentials or Database Content",
+    "description": "Publicly accessible backup files contain database credentials, passwords, API keys, or raw database dump content with user data.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: Exposed database credentials give attackers direct database access. User data/PII may trigger GDPR breach notification requirements.",
+    "remediation": "IMMEDIATE ACTION REQUIRED:\n\n1. Take the files offline immediately (delete or restrict access)\n\n2. Rotate ALL exposed credentials:\n   - Database password: update in wp-config.php AND in MySQL:\n     ALTER USER 'dbuser'@'localhost' IDENTIFIED BY 'new-strong-password';\n   - Any API keys found in config files\n   - Hosting control panel credentials\n   - SMTP/email credentials\n\n3. Assess the breach scope:\n   - What data was in the database dump?\n   - Were password hashes exposed? (Check if bcrypt or weak MD5)\n   - Was PII (names, emails, addresses) exposed?\n   - If PII was exposed, GDPR breach notification may be required within 72 hours\n\n4. Check for exploitation:\n   - Review access logs for downloads of the backup file\n   - Look for suspicious logins after the file was created\n\n5. Prevent future exposure (see SEC-BACKUP-001)",
+    "references": [
+      "https://ico.org.uk/for-organisations/guide-to-data-protection/guide-to-the-general-data-protection-regulation-gdpr/personal-data-breaches/",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information"
+    ]
+  },
+  "SEC-TRAVERSAL-001": {
+    "title": "Path Traversal / Local File Inclusion (LFI) Vulnerability",
+    "description": "The application is vulnerable to path traversal attacks, allowing an attacker to read arbitrary files from the server filesystem, including /etc/passwd, configuration files, and private keys.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: An attacker can read any file the web server process can access — including /etc/passwd (user list), application configs with DB credentials, SSH private keys, and other sensitive system files.",
+    "remediation": "Eliminate path traversal vulnerabilities:\n\n1. Never pass user input directly to file functions:\n   // Vulnerable:\n   include($_GET['page'] . '.php');\n   \n   // Safe — whitelist approach:\n   $allowed_pages = ['home', 'about', 'contact'];\n   $page = $_GET['page'];\n   if (!in_array($page, $allowed_pages)) {\n       $page = 'home';\n   }\n   include('pages/' . $page . '.php');\n\n2. Use basename() to strip directory traversal:\n   $file = basename($_GET['file']);\n   $path = realpath('/var/www/uploads/' . $file);\n   if (strpos($path, '/var/www/uploads/') !== 0) {\n       die('Invalid path');\n   }\n\n3. PHP configuration:\n   # php.ini:\n   open_basedir = /var/www/html:/tmp\n   allow_url_include = Off\n   allow_url_fopen = Off\n\n4. Web server — chroot/jail the web server process\n\n5. Run web server as a low-privilege user:\n   www-data should not have access to /etc/passwd as a usable attack beyond enumeration\n   Use AppArmor or SELinux profiles to restrict file access\n\n6. Review all includes/requires for user-controlled input",
+    "references": [
+      "https://owasp.org/www-community/attacks/Path_Traversal",
+      "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html",
+      "https://portswigger.net/web-security/file-path-traversal"
+    ]
+  },
+  "SEC-METHODS-001": {
+    "title": "Dangerous HTTP Methods Enabled",
+    "description": "The server has potentially dangerous HTTP methods enabled (TRACE, DELETE, WebDAV methods), which can be used in cross-site tracing attacks or to manipulate server resources.",
+    "risk": "MEDIUM",
+    "impact": "TRACE enables Cross-Site Tracing (XST) attacks that can steal cookies even when HttpOnly is set. WebDAV methods may allow file manipulation. DELETE could allow resource removal.",
+    "remediation": "Disable unnecessary HTTP methods:\n\nApache:\n<LimitExcept GET POST HEAD OPTIONS>\n    Order Deny,Allow\n    Deny from all\n</LimitExcept>\n\n# Specifically disable TRACE:\nTraceEnable off\n\nNginx:\nif ($request_method !~ ^(GET|HEAD|POST|OPTIONS)$ ) {\n    return 405;\n}\n\n# Specifically block TRACE:\nif ($request_method = TRACE) {\n    return 405;\n}\n\nIIS:\n# web.config\n<system.webServer>\n  <security>\n    <requestFiltering>\n      <verbs allowUnlisted=\"false\">\n        <add verb=\"GET\" allowed=\"true\"/>\n        <add verb=\"POST\" allowed=\"true\"/>\n        <add verb=\"HEAD\" allowed=\"true\"/>\n      </verbs>\n    </requestFiltering>\n  </security>\n</system.webServer>\n\nVerify:\ncurl -X TRACE https://yourdomain.com (should return 405)\ncurl -X OPTIONS -I https://yourdomain.com (check Allow header)",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods",
+      "https://www.owasp.org/index.php/Cross_Site_Tracing"
+    ]
+  },
+  "SEC-METHODS-002": {
+    "title": "HTTP PUT Method Active — Arbitrary File Write Possible",
+    "description": "The HTTP PUT method is enabled and accepted a file upload request. This allows unauthenticated arbitrary file creation on the web server.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: An attacker can upload malicious PHP files directly to the server using HTTP PUT, gaining Remote Code Execution without needing to find an upload form.",
+    "remediation": "Disable HTTP PUT immediately:\n\nApache:\n# httpd.conf or .htaccess:\n<LimitExcept GET POST HEAD OPTIONS>\n    Order Deny,Allow\n    Deny from all\n</LimitExcept>\n\n# If WebDAV is enabled, disable it:\na2dismod dav dav_fs dav_lock\nservice apache2 restart\n\nNginx:\nif ($request_method = PUT ) {\n    return 405;\n}\n\n# Or allow only specific methods:\nif ($request_method !~ ^(GET|HEAD|POST|OPTIONS)$ ) {\n    return 405;\n}\n\nImmediately:\n1. Check if any files were uploaded via PUT:\n   find /var/www/html -name '*.php' -newer /var/www/html/index.php\n2. Review access logs for PUT requests:\n   grep 'PUT ' /var/log/apache2/access.log\n3. Scan for webshells:\n   grep -r 'eval\\|base64_decode\\|system\\|exec\\|passthru' /var/www/html/",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods"
+    ]
+  },
+  "SEC-PHPINFO-001": {
+    "title": "phpinfo() Page or Apache Server-Status Exposed",
+    "description": "A phpinfo() page or Apache server-status endpoint is publicly accessible, exposing full PHP configuration, installed extensions, environment variables, file system paths, database credentials from environment, and server internals.",
+    "risk": "CRITICAL",
+    "impact": "phpinfo() reveals: PHP version, all php.ini settings, environment variables (including DB passwords), loaded modules, file system paths, and server configuration — a complete reconnaissance blueprint for attackers.",
+    "remediation": "Remove debug/info pages immediately:\n\n1. Delete phpinfo.php files:\n   find /var/www -name 'phpinfo.php' -o -name 'info.php' -o -name 'test.php' | xargs rm -f\n\n2. Suppress PHP info globally:\n   # php.ini:\n   expose_php = Off\n   \n   # Never call phpinfo() in production\n\n3. Disable Apache server-status for external access:\n   # httpd.conf:\n   <Location /server-status>\n       SetHandler server-status\n       Require local  # Only localhost\n   </Location>\n   \n   # Or disable entirely:\n   # Comment out: LoadModule status_module modules/mod_status.so\n\n4. If env vars contain passwords (visible in phpinfo):\n   Rotate all visible credentials immediately\n\n5. Block access to info/debug paths:\n   # .htaccess:\n   <FilesMatch '^(phpinfo|info|test|debug)\\.php$'>\n       Order Deny,Allow\n       Deny from all\n   </FilesMatch>",
+    "references": [
+      "https://www.php.net/manual/en/function.phpinfo.php",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework"
+    ]
+  },
+  "SEC-ERRPAGE-001": {
+    "title": "Error Pages Expose Sensitive Server or Application Information",
+    "description": "Server error pages reveal internal information including stack traces, file system paths, database error details, PHP error messages with line numbers, framework names, or internal IP addresses.",
+    "risk": "HIGH",
+    "impact": "Error page leakage reveals application internals that dramatically aid exploitation: exact file paths help directory traversal, DB errors reveal query structure for SQLi, stack traces expose the code architecture.",
+    "remediation": "Implement custom error pages and disable debug output in production:\n\n1. PHP — disable error display:\n   # php.ini (production settings):\n   display_errors = Off\n   display_startup_errors = Off\n   log_errors = On\n   error_log = /var/log/php_errors.log\n   error_reporting = E_ALL (log everything, display nothing)\n\n2. WordPress:\n   # wp-config.php:\n   define('WP_DEBUG', false);\n   define('WP_DEBUG_LOG', false);\n   define('WP_DEBUG_DISPLAY', false);\n   @ini_set('display_errors', 0);\n\n3. Custom 404/500 pages — Apache:\n   # httpd.conf or .htaccess:\n   ErrorDocument 404 /errors/404.html\n   ErrorDocument 500 /errors/500.html\n   ErrorDocument 403 /errors/403.html\n\n4. Custom error pages — Nginx:\n   error_page 404 /errors/404.html;\n   error_page 500 502 503 504 /errors/50x.html;\n\n5. Laravel:\n   # .env:\n   APP_ENV=production\n   APP_DEBUG=false\n\n6. Django:\n   # settings.py:\n   DEBUG = False\n   ALLOWED_HOSTS = ['yourdomain.com']",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-SHARED-001": {
+    "title": "Shared Hosting Detected — Cross-Site Contamination Risk",
+    "description": "The site appears to be on shared hosting infrastructure. On shared hosts, a compromise of any co-tenant site can lead to cross-site contamination affecting all sites on the server.",
+    "risk": "MEDIUM",
+    "impact": "On shared hosting, a compromised neighbour site can read your files (if permissions are misconfigured), inject malware into shared PHP configurations, or use the shared IP reputation to affect your deliverability.",
+    "remediation": "Harden shared hosting configuration to reduce cross-contamination risk:\n\n1. Set strict file permissions:\n   find /home/youraccount/public_html -type d -exec chmod 755 {} \\;\n   find /home/youraccount/public_html -type f -exec chmod 644 {} \\;\n   chmod 600 wp-config.php\n\n2. Ensure PHP runs as your user (not shared apache user):\n   - Use PHP-FPM with per-site user pools\n   - In cPanel: check if 'PHP runs as your user' is enabled (suPHP / CGI mode)\n\n3. Use open_basedir restriction:\n   php_admin_value[open_basedir] = /home/youraccount/public_html:/tmp\n\n4. Verify file isolation:\n   # Other users should not be able to read your files\n   ls -la /home/ (should show drwx------ for each user)\n\n5. For critical sites: consider moving to VPS or dedicated hosting\n   - DigitalOcean Droplet, Linode, AWS Lightsail\n   - Complete isolation from other tenants\n\n6. Regular security scanning:\n   - Wordfence or Sucuri to detect cross-contamination malware",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/",
+      "https://www.wordfence.com/learn/cross-site-contamination/"
+    ]
+  },
+  "SEC-SHARED-002": {
+    "title": "Hosting Control Panel Accessible on Default Port",
+    "description": "cPanel, WHM, or Plesk management interfaces are accessible on standard ports from the internet, exposing hosting administration to brute force and exploitation.",
+    "risk": "HIGH",
+    "impact": "If the hosting control panel is compromised, attackers gain full control over all sites on the server — file access, database access, email accounts, and the ability to install backdoors.",
+    "remediation": "Restrict control panel access to authorised IPs only:\n\ncPanel/WHM — IP whitelist via WHM:\n1. Login to WHM\n2. Home > Security Center > Host Access Control\n3. Add your IP to allow list for cpsrvd (cPanel daemon)\n4. Set default to DENY\n\ncPanel — via .htaccess (port 2083):\n# Not directly possible — use firewall\n\nFirewall (iptables):\n# Only allow your IP to access cPanel ports:\niptables -A INPUT -p tcp --dport 2082 -s YOUR_IP -j ACCEPT\niptables -A INPUT -p tcp --dport 2083 -s YOUR_IP -j ACCEPT\niptables -A INPUT -p tcp --dport 2082 -j DROP\niptables -A INPUT -p tcp --dport 2083 -j DROP\n\nCSF Firewall (common on cPanel):\n# /etc/csf/csf.allow:\nYOUR_IP # My office IP\n\n# /etc/csf/csf.conf:\nCPHRD_ENABLE = \"1\"  # cPanel hardening\n\nCloudflare: Use Cloudflare Access to gate the panel behind SSO",
+    "references": [
+      "https://documentation.cpanel.net/display/68Docs/WHM+Security+Advisor",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/"
+    ]
   }
 }
