@@ -1,0 +1,103 @@
+{
+  "SEC-HSTS-001": {
+    "title": "Missing or Weak HSTS Header",
+    "description": "The Strict-Transport-Security (HSTS) header is missing or has insufficient max-age value. This leaves users vulnerable to man-in-the-middle attacks during the initial connection or after the HSTS period expires.",
+    "risk": "HIGH",
+    "impact": "Attackers can intercept traffic, steal credentials, or inject malicious content via protocol downgrade attacks.",
+    "remediation": "Add the following HTTP header to all HTTPS responses:\n\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\n\nFor Apache (.htaccess or httpd.conf):\nHeader always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n\nFor Nginx:\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n\nFor application code (Express/Node.js):\napp.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true, preload: true }));",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
+      "https://hstspreload.org/"
+    ]
+  },
+  "SEC-FRAME-001": {
+    "title": "Missing Clickjacking Protection",
+    "description": "Neither X-Frame-Options nor Content-Security-Policy frame-ancestors directive is present, leaving the site vulnerable to clickjacking attacks.",
+    "risk": "MEDIUM",
+    "impact": "Attackers can embed your site in a malicious iframe and trick users into performing unintended actions.",
+    "remediation": "Option 1 - Use X-Frame-Options:\nX-Frame-Options: DENY\n\nOr if you need to allow same-origin framing:\nX-Frame-Options: SAMEORIGIN\n\nOption 2 - Use Content-Security-Policy (preferred):\nContent-Security-Policy: frame-ancestors 'none'\n\nFor Apache:\nHeader always set X-Frame-Options \"DENY\"\n\nFor Nginx:\nadd_header X-Frame-Options \"DENY\" always;\n\nFor Express/Node.js:\napp.use(helmet.frameguard({ action: 'deny' }));",
+    "references": [
+      "https://owasp.org/www-community/attacks/Clickjacking",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors"
+    ]
+  },
+  "SEC-XCTO-001": {
+    "title": "Missing X-Content-Type-Options Header",
+    "description": "The X-Content-Type-Options header is not set, allowing browsers to MIME-sniff content types, which can lead to security vulnerabilities.",
+    "risk": "LOW",
+    "impact": "Browsers may misinterpret file types, potentially executing malicious scripts disguised as other content types.",
+    "remediation": "Add the following header to all responses:\nX-Content-Type-Options: nosniff\n\nFor Apache:\nHeader always set X-Content-Type-Options \"nosniff\"\n\nFor Nginx:\nadd_header X-Content-Type-Options \"nosniff\" always;\n\nFor Express/Node.js:\napp.use(helmet.noSniff());",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options",
+      "https://owasp.org/www-project-secure-headers/#x-content-type-options"
+    ]
+  },
+  "SEC-RP-001": {
+    "title": "Missing or Weak Referrer-Policy",
+    "description": "The Referrer-Policy header is missing or uses a permissive policy, potentially leaking sensitive information in referrer headers.",
+    "risk": "LOW",
+    "impact": "URLs containing session tokens, user IDs, or other sensitive data may be leaked to third-party sites.",
+    "remediation": "Add a restrictive Referrer-Policy header:\nReferrer-Policy: strict-origin-when-cross-origin\n\nOr for maximum privacy:\nReferrer-Policy: no-referrer\n\nFor Apache:\nHeader always set Referrer-Policy \"strict-origin-when-cross-origin\"\n\nFor Nginx:\nadd_header Referrer-Policy \"strict-origin-when-cross-origin\" always;\n\nFor Express/Node.js:\napp.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy",
+      "https://owasp.org/www-project-secure-headers/#referrer-policy"
+    ]
+  },
+  "SEC-HTTPS-001": {
+    "title": "HTTP Not Redirecting to HTTPS",
+    "description": "The HTTP version of the site does not properly redirect to HTTPS, allowing insecure connections.",
+    "risk": "HIGH",
+    "impact": "Sensitive data may be transmitted unencrypted, vulnerable to interception and manipulation.",
+    "remediation": "Configure your web server to redirect all HTTP traffic to HTTPS with a 301 or 308 redirect.\n\nFor Apache (.htaccess):\nRewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]\n\nFor Nginx:\nserver {\n    listen 80;\n    server_name example.com;\n    return 301 https://$server_name$request_uri;\n}",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections"
+    ]
+  },
+  "SEC-TLS-001": {
+    "title": "Outdated TLS Version",
+    "description": "The server is using TLS 1.0 or 1.1, which are deprecated and have known vulnerabilities.",
+    "risk": "HIGH",
+    "impact": "Connections may be vulnerable to attacks like POODLE, BEAST, and other protocol-level exploits.",
+    "remediation": "Disable TLS 1.0 and 1.1. Enable TLS 1.2 and TLS 1.3 only.\n\nFor Apache (SSLProtocol directive):\nSSLProtocol -all +TLSv1.2 +TLSv1.3\n\nFor Nginx:\nssl_protocols TLSv1.2 TLSv1.3;",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc8996.html",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
+    ]
+  },
+  "SEC-COOKIE-001": {
+    "title": "Missing Secure Flag on Cookie",
+    "description": "Session or authentication cookies are missing the Secure flag, allowing them to be transmitted over unencrypted connections.",
+    "risk": "HIGH",
+    "impact": "Cookies may be intercepted over HTTP connections, leading to session hijacking.",
+    "remediation": "Add the Secure flag to all cookies:\nSet-Cookie: sessionid=...; Secure; HttpOnly; SameSite=Strict\n\nFor application code:\n- PHP: session.cookie_secure = 1\n- Express: cookie: { secure: true }\n- Django: SESSION_COOKIE_SECURE = True",
+    "references": [
+      "https://owasp.org/www-community/controls/SecureCookieAttribute",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies"
+    ]
+  },
+  "SEC-COOKIE-002": {
+    "title": "Missing HttpOnly Flag on Cookie",
+    "description": "Cookies are missing the HttpOnly flag, making them accessible to JavaScript and vulnerable to XSS attacks.",
+    "risk": "HIGH",
+    "impact": "Attackers can steal session cookies via cross-site scripting (XSS) attacks.",
+    "remediation": "Add the HttpOnly flag to all cookies:\nSet-Cookie: sessionid=...; Secure; HttpOnly; SameSite=Strict\n\nFor application code:\n- PHP: session.cookie_httponly = 1\n- Express: cookie: { httpOnly: true }\n- Django: SESSION_COOKIE_HTTPONLY = True",
+    "references": [
+      "https://owasp.org/www-community/HttpOnly",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies"
+    ]
+  },
+  "SEC-COOKIE-003": {
+    "title": "Missing SameSite Attribute on Cookie",
+    "description": "Cookies lack the SameSite attribute, leaving them vulnerable to cross-site request forgery (CSRF) attacks.",
+    "risk": "MEDIUM",
+    "impact": "Attackers can perform actions on behalf of authenticated users by tricking them into visiting malicious sites.",
+    "remediation": "Add the SameSite attribute to cookies:\nSet-Cookie: sessionid=...; Secure; HttpOnly; SameSite=Strict\n\nOr use SameSite=Lax for better compatibility:\nSet-Cookie: sessionid=...; Secure; HttpOnly; SameSite=Lax\n\nFor application code:\n- Express: cookie: { sameSite: 'strict' }\n- Django: SESSION_COOKIE_SAMESITE = 'Strict'",
+    "references": [
+      "https://owasp.org/www-community/SameSite",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite"
+    ]
+  }
+}
