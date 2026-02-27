@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-source "$(dirname "$0")/lib/cli.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$SCRIPT_DIR/lib/cli.sh"
 
 for TARGET in "${ARGS[@]}"; do
   echo "Running SHIELD step on $TARGET"

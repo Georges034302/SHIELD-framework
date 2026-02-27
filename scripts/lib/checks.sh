@@ -12,7 +12,7 @@ check_hsts() {
     fi
     
     # Extract max-age value
-    local max_age=$(echo "$hsts" | grep -oE 'max-age=([0-9]+)' | cut -d= -f2)
+    local max_age=$(echo "$hsts" | grep -oE 'max-age=([0-9]+)' | cut -d= -f2 || true)
     
     if [ -z "$max_age" ]; then
         echo "FAIL|$hsts|max-age >= 31536000"

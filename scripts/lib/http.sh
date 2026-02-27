@@ -22,7 +22,7 @@ get_header() {
     local headers="$1"
     local header_name="$2"
     
-    echo "$headers" | grep -i "^${header_name}:" | cut -d: -f2- | sed 's/^[[:space:]]*//' | tr -d '\r'
+    echo "$headers" | grep -i "^${header_name}:" | cut -d: -f2- | sed 's/^[[:space:]]*//' | tr -d '\r' || true
 }
 
 # Check if header exists
@@ -30,7 +30,7 @@ has_header() {
     local headers="$1"
     local header_name="$2"
     
-    echo "$headers" | grep -qi "^${header_name}:"
+    echo "$headers" | grep -qi "^${header_name}:" && return 0 || return 1
 }
 
 # Get HTTP status code

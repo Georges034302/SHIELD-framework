@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Step 2: Security Headers Check
-set -euo pipefail
+set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/lib/cli.sh"
@@ -9,6 +9,17 @@ source "$SCRIPT_DIR/lib/http.sh"
 source "$SCRIPT_DIR/lib/checks.sh"
 
 STEP_NAME="step2_headers"
+
+# Helper to escape JSON strings safely
+json_escape() {
+    local str="$1"
+    # Replace backslash, then quotes, then newlines
+    str="${str//\\/\\\\}"
+    str="${str//\"/\\\"}"
+    str="${str//$'\n'/\\n}"
+    str="${str//$'\r'/}"
+    echo -n "$str"
+}
 
 for TARGET in "${ARGS[@]}"; do
     print_status "INFO" "Checking security headers for $TARGET"
@@ -43,15 +54,9 @@ for TARGET in "${ARGS[@]}"; do
         print_status "FAIL" "    HSTS header missing"
     fi
     
-    check_json=$(jq -n \
-        --arg name "Strict-Transport-Security" \
-        --arg status "$status" \
-        --arg found "$found" \
-        --arg expected "$expected" \
-        --arg severity "$severity" \
-        --arg remediation_id "$remediation_id" \
-        '{name: $name, status: $status, found: $found, expected: $expected, severity: $severity, remediation_id: $remediation_id}' | tr -d '\n')
-    CHECKS+=("$check_json")
+    found_esc=$(json_escape "$found")
+    expected_esc=$(json_escape "$expected")
+    CHECKS+=("{\"name\":\"Strict-Transport-Security\",\"status\":\"$status\",\"found\":\"$found_esc\",\"expected\":\"$expected_esc\",\"severity\":\"$severity\",\"remediation_id\":\"$remediation_id\"}")
     
     # 2. Clickjacking Protection
     print_status "INFO" "  Checking clickjacking protection..."
@@ -68,15 +73,9 @@ for TARGET in "${ARGS[@]}"; do
         print_status "FAIL" "    Clickjacking protection missing"
     fi
     
-    check_json=$(jq -n \
-        --arg name "Clickjacking Protection" \
-        --arg status "$status" \
-        --arg found "$found" \
-        --arg expected "$expected" \
-        --arg severity "$severity" \
-        --arg remediation_id "$remediation_id" \
-        '{name: $name, status: $status, found: $found, expected: $expected, severity: $severity, remediation_id: $remediation_id}' | tr -d '\n')
-    CHECKS+=("$check_json")
+    found_esc=$(json_escape "$found")
+    expected_esc=$(json_escape "$expected")
+    CHECKS+=("{\"name\":\"Clickjacking Protection\",\"status\":\"$status\",\"found\":\"$found_esc\",\"expected\":\"$expected_esc\",\"severity\":\"$severity\",\"remediation_id\":\"$remediation_id\"}")
     
     # 3. Content-Type-Options
     print_status "INFO" "  Checking X-Content-Type-Options..."
@@ -93,15 +92,9 @@ for TARGET in "${ARGS[@]}"; do
         print_status "FAIL" "    X-Content-Type-Options missing"
     fi
     
-    check_json=$(jq -n \
-        --arg name "X-Content-Type-Options" \
-        --arg status "$status" \
-        --arg found "$found" \
-        --arg expected "$expected" \
-        --arg severity "$severity" \
-        --arg remediation_id "$remediation_id" \
-        '{name: $name, status: $status, found: $found, expected: $expected, severity: $severity, remediation_id: $remediation_id}' | tr -d '\n')
-    CHECKS+=("$check_json")
+    found_esc=$(json_escape "$found")
+    expected_esc=$(json_escape "$expected")
+    CHECKS+=("{\"name\":\"X-Content-Type-Options\",\"status\":\"$status\",\"found\":\"$found_esc\",\"expected\":\"$expected_esc\",\"severity\":\"$severity\",\"remediation_id\":\"$remediation_id\"}")
     
     # 4. Referrer-Policy
     print_status "INFO" "  Checking Referrer-Policy..."
@@ -122,15 +115,9 @@ for TARGET in "${ARGS[@]}"; do
         print_status "WARN" "    Referrer-Policy missing"
     fi
     
-    check_json=$(jq -n \
-        --arg name "Referrer-Policy" \
-        --arg status "$status" \
-        --arg found "$found" \
-        --arg expected "$expected" \
-        --arg severity "$severity" \
-        --arg remediation_id "$remediation_id" \
-        '{name: $name, status: $status, found: $found, expected: $expected, severity: $severity, remediation_id: $remediation_id}' | tr -d '\n')
-    CHECKS+=("$check_json")
+    found_esc=$(json_escape "$found")
+    expected_esc=$(json_escape "$expected")
+    CHECKS+=("{\"name\":\"Referrer-Policy\",\"status\":\"$status\",\"found\":\"$found_esc\",\"expected\":\"$expected_esc\",\"severity\":\"$severity\",\"remediation_id\":\"$remediation_id\"}")
     
     # Write JSON report
     OUTPUT_DIR="$OUT/step2"
@@ -144,7 +131,7 @@ for TARGET in "${ARGS[@]}"; do
         echo "  \"target\": \"$TARGET\","
         echo "  \"checks\": ["
         
-        local first=true
+        first=true
         for check in "${CHECKS[@]}"; do
             if [ "$first" = true ]; then
                 first=false
