@@ -99,5 +99,401 @@
       "https://owasp.org/www-community/SameSite",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite"
     ]
+  },
+  "SEC-REDIR-001": {
+    "title": "HTTP Redirect Should Use 308 Instead of 301",
+    "description": "The HTTP to HTTPS redirect uses 301 (Moved Permanently) instead of 308 (Permanent Redirect). While both work, 308 preserves the request method and body.",
+    "risk": "LOW",
+    "impact": "POST requests may be converted to GET during redirect, though this is rare in practice for this specific scenario.",
+    "remediation": "Configure your web server to use 308 redirects:\n\nFor Apache:\nRedirect 308 / https://example.com/\n\nFor Nginx:\nreturn 308 https://$server_name$request_uri;",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/308",
+      "https://www.rfc-editor.org/rfc/rfc7538"
+    ]
+  },
+  "SEC-REDIR-002": {
+    "title": "Temporary HTTP Redirect Used",
+    "description": "The HTTP to HTTPS redirect uses a temporary redirect (302/307) instead of a permanent one (301/308), which is less secure and inefficient.",
+    "risk": "MEDIUM",
+    "impact": "Browsers won't cache the redirect, requiring an insecure HTTP request on every visit. Search engines won't transfer SEO value.",
+    "remediation": "Change to a permanent redirect:\n\nFor Apache:\nRedirect 308 / https://example.com/\n\nFor Nginx:\nreturn 308 https://$server_name$request_uri;",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security"
+    ]
+  },
+  "SEC-REDIR-003": {
+    "title": "HTTP Redirects to Non-HTTPS URL",
+    "description": "The HTTP version redirects to a non-HTTPS URL, defeating the purpose of transport security.",
+    "risk": "HIGH",
+    "impact": "Traffic remains unencrypted and vulnerable to interception.",
+    "remediation": "Ensure all HTTP traffic redirects to HTTPS URLs only:\n\nFor Apache:\nRewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=308,L]\n\nFor Nginx:\nreturn 308 https://$server_name$request_uri;",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
+    ]
+  },
+  "SEC-REDIR-004": {
+    "title": "No HTTPS Redirect Configured",
+    "description": "HTTP requests do not redirect to HTTPS, allowing unencrypted connections.",
+    "risk": "HIGH",
+    "impact": "Users can access the site over HTTP, exposing their data to interception and manipulation.",
+    "remediation": "Configure HTTP to HTTPS redirect:\n\nFor Apache:\nRewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=308,L]\n\nFor Nginx:\nserver {\n    listen 80;\n    server_name example.com;\n    return 308 https://$server_name$request_uri;\n}",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
+    ]
+  },
+  "SEC-HSTS-002": {
+    "title": "HSTS Missing includeSubDomains or preload",
+    "description": "The HSTS header is present but missing recommended directives (includeSubDomains, preload) for comprehensive protection.",
+    "risk": "LOW",
+    "impact": "Subdomains may not be protected by HSTS, and the domain cannot be included in browser HSTS preload lists.",
+    "remediation": "Enhance the HSTS header:\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\n\nFor Apache:\nHeader always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n\nFor Nginx:\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n\nNote: Before adding 'preload', submit your domain to https://hstspreload.org/",
+    "references": [
+      "https://hstspreload.org/",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
+    ]
+  },
+  "SEC-HSTS-003": {
+    "title": "HSTS Configuration Issues",
+    "description": "The HSTS header has multiple configuration issues (low max-age, missing directives).",
+    "risk": "MEDIUM",
+    "impact": "Incomplete HSTS protection leaves gaps for man-in-the-middle attacks.",
+    "remediation": "Fix all HSTS configuration issues:\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\n\nEnsure:\n- max-age is at least 31536000 (1 year)\n- includeSubDomains is present\n- preload is added (optional but recommended)\n\nFor Apache:\nHeader always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n\nFor Nginx:\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security"
+    ]
+  },
+  "SEC-CSP-001": {
+    "title": "Missing Content Security Policy",
+    "description": "No Content-Security-Policy header is present, leaving the site vulnerable to XSS and data injection attacks.",
+    "risk": "MEDIUM",
+    "impact": "Attackers can inject and execute malicious scripts, steal data, or deface the website.",
+    "remediation": "Implement a Content Security Policy:\n\nBasic starting policy:\nContent-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'\n\nFor Apache:\nHeader always set Content-Security-Policy \"default-src 'self'; script-src 'self'\"\n\nFor Nginx:\nadd_header Content-Security-Policy \"default-src 'self'; script-src 'self'\" always;\n\nFor Express/Node.js:\napp.use(helmet.contentSecurityPolicy({ directives: { defaultSrc: [\"'self'\"], scriptSrc: [\"'self'\"] }}));",
+    "references": [
+      "https://owasp.org/www-project-secure-headers/#content-security-policy",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
+      "https://content-security-policy.com/"
+    ]
+  },
+  "SEC-CSP-002": {
+    "title": "Weak Content Security Policy",
+    "description": "The CSP contains one risky directive that weakens its effectiveness.",
+    "risk": "LOW",
+    "impact": "The policy provides some XSS protection but has gaps that could be exploited.",
+    "remediation": "Strengthen your CSP by removing risky directives:\n\n1. Remove 'unsafe-inline' from script-src and style-src\n2. Remove 'unsafe-eval' from script-src\n3. Avoid wildcards (*) in script-src\n4. Remove data: URIs from script-src\n5. Add a default-src fallback\n\nBetter policy:\nContent-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{random}'; style-src 'self'; object-src 'none'\n\nImplement nonce-based CSP for inline scripts instead of 'unsafe-inline'.",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
+      "https://csp.withgoogle.com/docs/strict-csp.html"
+    ]
+  },
+  "SEC-CSP-003": {
+    "title": "Multiple CSP Weaknesses Detected",
+    "description": "The Content Security Policy has multiple risky directives that significantly weaken its protection.",
+    "risk": "MEDIUM",
+    "impact": "The policy may not effectively prevent XSS attacks due to permissive directives.",
+    "remediation": "Rebuild your CSP with a strict baseline:\n\nStrict CSP example:\nContent-Security-Policy: default-src 'none'; script-src 'self' 'nonce-{random}'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'\n\nKey principles:\n1. Start with default-src 'none' or 'self'\n2. Never use 'unsafe-inline' or 'unsafe-eval' in script-src\n3. Avoid wildcards (*)\n4. Use nonces or hashes for required inline scripts\n5. Include frame-ancestors directive\n\nTest with Content-Security-Policy-Report-Only first.",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
+      "https://csp.withgoogle.com/docs/strict-csp.html",
+      "https://owasp.org/www-project-secure-headers/#content-security-policy"
+    ]
+  },
+  "SEC-INFO-001": {
+    "title": "Server Information Leakage",
+    "description": "HTTP headers expose server software versions and framework details that aid attackers in reconnaissance.",
+    "risk": "LOW to MEDIUM",
+    "impact": "Attackers can identify specific software versions and target known vulnerabilities more effectively.",
+    "remediation": "Remove or obfuscate identifying headers:\n\nFor Apache:\nServerTokens Prod\nServerSignature Off\nHeader always unset X-Powered-By\nHeader always unset X-AspNet-Version\nHeader always unset X-AspNetMvc-Version\n\nFor Nginx:\nserver_tokens off;\nmore_clear_headers Server;\nmore_clear_headers X-Powered-By;\n\nFor Express/Node.js:\napp.disable('x-powered-by');\n\nFor ASP.NET (web.config):\n<httpRuntime enableVersionHeader=\"false\" />\n<system.webServer>\n  <httpProtocol>\n    <customHeaders>\n      <remove name=\"X-Powered-By\" />\n      <remove name=\"X-AspNet-Version\" />\n      <remove name=\"X-AspNetMvc-Version\" />\n    </customHeaders>\n  </httpProtocol>\n</system.webServer>",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+      "https://owasp.org/www-project-secure-headers/"
+    ]
+  },
+  "SEC-CERT-001": {
+    "title": "Certificate Retrieval Failed",
+    "description": "Unable to retrieve the SSL/TLS certificate for validation.",
+    "risk": "HIGH",
+    "impact": "Cannot verify the security of the connection; the site may not be using HTTPS properly.",
+    "remediation": "Ensure the site has a valid SSL/TLS certificate installed:\n\n1. Obtain a certificate from a trusted CA (Let's Encrypt, DigiCert, etc.)\n2. Install the certificate on your web server\n3. Configure HTTPS properly\n\nFor Let's Encrypt:\nsudo certbot --nginx -d example.com\n\nFor Apache with existing certificate:\nSSLCertificateFile /path/to/certificate.crt\nSSLCertificateKeyFile /path/to/private.key\nSSLCertificateChainFile /path/to/chain.crt",
+    "references": [
+      "https://letsencrypt.org/getting-started/",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
+    ]
+  },
+  "SEC-CERT-002": {
+    "title": "Certificate Expiry Parse Error",
+    "description": "The certificate was retrieved but the expiry date could not be parsed.",
+    "risk": "MEDIUM",
+    "impact": "Cannot determine if the certificate is still valid.",
+    "remediation": "Check your certificate manually:\n\nopenssl s_client -servername example.com -connect example.com:443 < /dev/null 2>/dev/null | openssl x509 -noout -dates\n\nIf the certificate appears malformed, regenerate it.",
+    "references": [
+      "https://www.openssl.org/docs/man1.1.1/man1/openssl-x509.html"
+    ]
+  },
+  "SEC-CERT-003": {
+    "title": "Certificate Date Format Error",
+    "description": "The certificate expiry date is in an unrecognized format.",
+    "risk": "LOW",
+    "impact": "Automated checking cannot determine validity period.",
+    "remediation": "Check certificate validity manually and consider regenerating if format is non-standard.",
+    "references": [
+      "https://www.openssl.org/docs/"
+    ]
+  },
+  "SEC-CERT-004": {
+    "title": "Certificate Expired",
+    "description": "The SSL/TLS certificate has expired and is no longer valid.",
+    "risk": "CRITICAL",
+    "impact": "Browsers will warn users and block access. The connection is untrusted and potentially vulnerable.",
+    "remediation": "Renew your certificate immediately:\n\nFor Let's Encrypt:\nsudo certbot renew\n\nFor other providers:\n1. Request a new certificate from your CA\n2. Install the renewed certificate\n3. Restart your web server\n\nConsider setting up automatic renewal.",
+    "references": [
+      "https://letsencrypt.org/docs/",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
+    ]
+  },
+  "SEC-CERT-005": {
+    "title": "Certificate Expiring Soon (< 7 Days)",
+    "description": "The SSL/TLS certificate will expire in less than 7 days.",
+    "risk": "HIGH",
+    "impact": "Imminent expiry will cause browsers to warn users and may result in service disruption.",
+    "remediation": "Renew your certificate urgently:\n\nFor Let's Encrypt:\nsudo certbot renew\n\nFor manual certificates:\n1. Generate or request a new certificate\n2. Install it before expiration\n3. Set up automated renewal to prevent future issues",
+    "references": [
+      "https://letsencrypt.org/docs/"
+    ]
+  },
+  "SEC-CERT-006": {
+    "title": "Certificate Expiring Within 30 Days",
+    "description": "The SSL/TLS certificate will expire in less than 30 days.",
+    "risk": "MEDIUM",
+    "impact": "Certificate will expire soon. Plan renewal to avoid service disruption.",
+    "remediation": "Plan to renew your certificate:\n\nFor Let's Encrypt (with auto-renewal):\nsudo certbot renew --dry-run\n\nIf auto-renewal isn't working, renew manually:\nsudo certbot renew\n\nFor other providers, request renewal and schedule installation.",
+    "references": [
+      "https://letsencrypt.org/docs/"
+    ]
+  },
+  "SEC-FILES-001": {
+    "title": "Sensitive File Exposed",
+    "description": "A sensitive file (configuration, backup, or version control file) is publicly accessible.",
+    "risk": "HIGH",
+    "impact": "Exposed files may contain credentials, API keys, source code, or other sensitive information that aids attackers.",
+    "remediation": "Remove or restrict access to sensitive files:\n\nFor Apache (.htaccess):\n<FilesMatch \"\\.(git|env|sql|zip|tar\\.gz)$\">\n    Require all denied\n</FilesMatch>\n\nFor Nginx:\nlocation ~ /\\.git {\n    deny all;\n}\nlocation ~ /\\. {\n    deny all;\n}\nlocation ~ \\.(sql|zip|tar\\.gz)$ {\n    deny all;\n}\n\nBest practices:\n1. Don't deploy .git directories to production\n2. Use .gitignore for sensitive files\n3. Store config outside webroot\n4. Disable directory listing",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+      "https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload"
+    ]
+  },
+  "SEC-FILES-002": {
+    "title": "Multiple Sensitive Files Exposed",
+    "description": "Multiple sensitive files and directories are publicly accessible, indicating poor deployment practices.",
+    "risk": "CRITICAL",
+    "impact": "Widespread exposure of sensitive files creates multiple attack vectors and may expose credentials, source code, or database contents.",
+    "remediation": "Immediately restrict access to all sensitive files:\n\nFor Apache (.htaccess):\n# Block sensitive files\n<FilesMatch \"^\\.(htaccess|htpasswd|env|git)\">\n    Require all denied\n</FilesMatch>\n<FilesMatch \"\\.(sql|zip|tar\\.gz|bak|config|log)$\">\n    Require all denied\n</FilesMatch>\n\nFor Nginx:\nlocation ~ /\\.(git|env|htaccess|htpasswd) {\n    deny all;\n}\nlocation ~ \\.(sql|zip|tar\\.gz|bak|config|log)$ {\n    deny all;\n}\n\nImmediate actions:\n1. Remove .git directories from production\n2. Move .env files outside webroot\n3. Delete all backup files (.sql, .zip, .bak)\n4. Review and clean deployment process\n5. Never commit sensitive files to version control",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces"
+    ]
+  },
+  "SEC-ADMIN-001": {
+    "title": "Admin Path Publicly Accessible",
+    "description": "An administrative interface or sensitive debug endpoint is publicly accessible without authentication.",
+    "risk": "HIGH",
+    "impact": "Attackers can access administrative functions, potentially gaining full control of the application.",
+    "remediation": "Restrict access to admin interfaces:\n\nFor Apache (.htaccess in /admin):\nRequire ip 192.168.1.0/24\n# Or require authentication:\nAuthType Basic\nAuthName \"Admin Access\"\nAuthUserFile /path/to/.htpasswd\nRequire valid-user\n\nFor Nginx:\nlocation /admin {\n    allow 192.168.1.0/24;\n    deny all;\n    # Or use auth_basic\n}\n\nBest practices:\n1. Use IP whitelisting for admin areas\n2. Require strong authentication (MFA)\n3. Use non-standard admin paths\n4. Disable debug endpoints in production\n5. Monitor access logs for admin paths",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-ADMIN-002": {
+    "title": "Multiple Admin Paths Exposed",
+    "description": "Multiple administrative interfaces or debug endpoints are publicly accessible.",
+    "risk": "CRITICAL",
+    "impact": "Widespread exposure of administrative functions creates severe security risks including complete system compromise.",
+    "remediation": "Immediately lock down all admin interfaces:\n\nFor Apache:\n<LocationMatch \"/(admin|phpmyadmin|server-status|actuator)\">\n    Require ip 192.168.1.0/24\n    # Or require authentication:\n    AuthType Basic\n    AuthName \"Restricted\"\n    AuthUserFile /path/to/.htpasswd\n    Require valid-user\n</LocationMatch>\n\nFor Nginx:\nlocation ~ ^/(admin|phpmyadmin|server-status|actuator) {\n    allow 192.168.1.0/24;\n    deny all;\n}\n\nUrgent actions:\n1. Immediately block public access to all admin paths\n2. Review server configuration for debug modes\n3. Disable server-status, server-info modules\n4. Remove or protect PHPMyAdmin, actuator endpoints\n5. Audit all access logs for admin paths\n6. Consider using VPN for admin access",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-TLS-002": {
+    "title": "TLS 1.3 Not Supported",
+    "description": "The server only supports TLS 1.2 but not TLS 1.3, the latest and most secure version.",
+    "risk": "LOW",
+    "impact": "Missing improved security and performance benefits of TLS 1.3.",
+    "remediation": "Enable TLS 1.3 support:\n\nFor Apache:\nSSLProtocol -all +TLSv1.2 +TLSv1.3\n\nFor Nginx:\nssl_protocols TLSv1.2 TLSv1.3;\n\nNote: Ensure your OpenSSL version supports TLS 1.3 (OpenSSL 1.1.1+).",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc8446",
+      "https://www.openssl.org/docs/"
+    ]
+  },
+  "SEC-TLS-003": {
+    "title": "No Modern TLS Protocols Detected",
+    "description": "Unable to detect TLS 1.2 or TLS 1.3 support on the server.",
+    "risk": "HIGH",
+    "impact": "Server may not support modern secure protocols, leaving connections vulnerable.",
+    "remediation": "Ensure TLS 1.2 and 1.3 are enabled:\n\nFor Apache:\nSSLProtocol -all +TLSv1.2 +TLSv1.3\nSSLCipherSuite HIGH:!aNULL:!MD5\n\nFor Nginx:\nssl_protocols TLSv1.2 TLSv1.3;\nssl_ciphers HIGH:!aNULL:!MD5;\n\nVerify:\nopenssl s_client -connect example.com:443 -tls1_2",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
+    ]
+  },
+  "SEC-HEADERS-001": {
+    "title": "Missing Modern Security Header",
+    "description": "One modern security header (Permissions-Policy, COOP, COEP, or CORP) is missing.",
+    "risk": "LOW",
+    "impact": "Missing defense-in-depth protection against certain browser-based attacks.",
+    "remediation": "Add the missing header:\n\nPermissions-Policy:\nPermissions-Policy: geolocation=(), camera=(), microphone=()\n\nCross-Origin-Opener-Policy:\nCross-Origin-Opener-Policy: same-origin\n\nCross-Origin-Embedder-Policy:\nCross-Origin-Embedder-Policy: require-corp\n\nCross-Origin-Resource-Policy:\nCross-Origin-Resource-Policy: same-origin\n\nFor Nginx:\nadd_header Permissions-Policy \"geolocation=(), camera=(), microphone=()\" always;\nadd_header Cross-Origin-Opener-Policy \"same-origin\" always;",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy"
+    ]
+  },
+  "SEC-HEADERS-002": {
+    "title": "Multiple Modern Security Headers Missing",
+    "description": "Two or more modern security headers are missing from the response.",
+    "risk": "LOW",
+    "impact": "Reduced defense-in-depth protection.",
+    "remediation": "Add all modern security headers:\n\nFor Nginx:\nadd_header Permissions-Policy \"geolocation=(), camera=(), microphone=()\" always;\nadd_header Cross-Origin-Opener-Policy \"same-origin\" always;\nadd_header Cross-Origin-Embedder-Policy \"require-corp\" always;\nadd_header Cross-Origin-Resource-Policy \"same-origin\" always;\n\nFor Apache:\nHeader always set Permissions-Policy \"geolocation=(), camera=(), microphone=()\"\nHeader always set Cross-Origin-Opener-Policy \"same-origin\"\nHeader always set Cross-Origin-Embedder-Policy \"require-corp\"\nHeader always set Cross-Origin-Resource-Policy \"same-origin\"",
+    "references": [
+      "https://owasp.org/www-project-secure-headers/"
+    ]
+  },
+  "SEC-HEADERS-003": {
+    "title": "Most Modern Security Headers Missing",
+    "description": "Three or more modern security headers are missing, indicating lack of modern browser protections.",
+    "risk": "MEDIUM",
+    "impact": "Significant gaps in defense-in-depth protection against modern browser-based attacks.",
+    "remediation": "Implement all modern security headers:\n\nComplete header set:\nPermissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()\nCross-Origin-Opener-Policy: same-origin\nCross-Origin-Embedder-Policy: require-corp\nCross-Origin-Resource-Policy: same-origin\n\nFor Express/Node.js:\napp.use(helmet({\n  permissionsPolicy: { features: { geolocation: [], camera: [], microphone: [] } },\n  crossOriginOpenerPolicy: { policy: 'same-origin' },\n  crossOriginEmbedderPolicy: true,\n  crossOriginResourcePolicy: { policy: 'same-origin' }\n}));",
+    "references": [
+      "https://owasp.org/www-project-secure-headers/",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers"
+    ]
+  },
+  "SEC-CORS-001": {
+    "title": "CORS Allows Any Origin with Credentials",
+    "description": "The most dangerous CORS misconfiguration: Access-Control-Allow-Origin: * combined with Access-Control-Allow-Credentials: true.",
+    "risk": "CRITICAL",
+    "impact": "Any malicious website can make authenticated requests to your API and steal user data.",
+    "remediation": "IMMEDIATELY fix this critical misconfiguration:\n\nOption 1 - Remove credentials:\nAccess-Control-Allow-Credentials: false\n\nOption 2 - Restrict origin (RECOMMENDED):\nAccess-Control-Allow-Origin: https://trusted-domain.com\nAccess-Control-Allow-Credentials: true\n\nFor Express:\napp.use(cors({\n  origin: 'https://trusted-domain.com',\n  credentials: true\n}));\n\nNEVER use:\nAccess-Control-Allow-Origin: *\nAccess-Control-Allow-Credentials: true",
+    "references": [
+      "https://owasp.org/www-community/attacks/CORS_OriginHeaderScrutiny",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"
+    ]
+  },
+  "SEC-CORS-002": {
+    "title": "CORS Misconfiguration Detected",
+    "description": "CORS is configured in a way that may expose the application to attacks.",
+    "risk": "HIGH to MEDIUM",
+    "impact": "Attackers may be able to make unauthorized cross-origin requests or steal sensitive data.",
+    "remediation": "Fix CORS configuration:\n\n1. Never use wildcard (*) for sensitive APIs\n2. Validate origin against whitelist\n3. Avoid reflecting Origin header without validation\n4. Only set credentials: true with specific trusted origins\n\nFor Express:\nconst whitelist = ['https://example.com', 'https://app.example.com'];\napp.use(cors({\n  origin: function (origin, callback) {\n    if (whitelist.indexOf(origin) !== -1 || !origin) {\n      callback(null, true);\n    } else {\n      callback(new Error('Not allowed by CORS'));\n    }\n  },\n  credentials: true\n}));\n\nFor Nginx:\nif ($http_origin ~* (https://example\\.com|https://app\\.example\\.com)) {\n    add_header Access-Control-Allow-Origin $http_origin always;\n    add_header Access-Control-Allow-Credentials true always;\n}",
+    "references": [
+      "https://owasp.org/www-community/attacks/CORS_OriginHeaderScrutiny",
+      "https://portswigger.net/web-security/cors"
+    ]
+  },
+  "SEC-DIRLISTING-001": {
+    "title": "Directory Listing Enabled",
+    "description": "One or more directories have directory listing enabled, exposing file structure.",
+    "risk": "MEDIUM",
+    "impact": "Attackers can discover files, analyze application structure, and find sensitive files more easily.",
+    "remediation": "Disable directory listing:\n\nFor Apache (.htaccess or httpd.conf):\nOptions -Indexes\n\nFor Nginx:\nautoindex off;\n\nFor IIS (web.config):\n<configuration>\n  <system.webServer>\n    <directoryBrowse enabled=\"false\" />\n  </system.webServer>\n</configuration>\n\nBest practices:\n1. Place an index file in every directory\n2. Disable at server level, not just per-directory\n3. Review exposed files and remove sensitive ones",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information"
+    ]
+  },
+  "SEC-DIRLISTING-002": {
+    "title": "Multiple Directories with Listing Enabled",
+    "description": "Multiple directories have directory listing enabled across the application.",
+    "risk": "HIGH",
+    "impact": "Widespread exposure of file structure aids attackers in reconnaissance and finding vulnerabilities.",
+    "remediation": "Immediately disable directory listing globally:\n\nFor Apache (httpd.conf):\n<Directory /var/www>\n    Options -Indexes +FollowSymLinks\n</Directory>\n\nFor Nginx (nginx.conf):\nhttp {\n    autoindex off;\n}\n\nFor IIS (applicationHost.config):\n<system.webServer>\n  <directoryBrowse enabled=\"false\" />\n</system.webServer>\n\nUrgent actions:\n1. Disable globally at server level\n2. Audit all exposed directories\n3. Remove any sensitive files found\n4. Add index.html to all public directories\n5. Review deployment process to prevent recurrence",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information"
+    ]
+  },
+  "SEC-API-001": {
+    "title": "Open API Endpoint Detected",
+    "description": "An API endpoint is accessible without authentication.",
+    "risk": "MEDIUM",
+    "impact": "Unauthorized users can access API functionality and potentially sensitive data.",
+    "remediation": "Require authentication for API endpoints:\n\nFor Express:\nconst authenticate = require('./middleware/auth');\napp.use('/api', authenticate);\n\nFor REST APIs, use:\n- API keys in headers\n- OAuth 2.0 tokens\n- JWT (JSON Web Tokens)\n\nExample with JWT:\nconst jwt = require('jsonwebtoken');\napp.use('/api', (req, res, next) => {\n  const token = req.headers.authorization?.split(' ')[1];\n  if (!token) return res.status(401).json({ error: 'Unauthorized' });\n  try {\n    const decoded = jwt.verify(token, process.env.JWT_SECRET);\n    req.user = decoded;\n    next();\n  } catch (err) {\n    res.status(401).json({ error: 'Invalid token' });\n  }\n});\n\nFor Nginx:\nlocation /api {\n    auth_basic \"API Access\";\n    auth_basic_user_file /etc/nginx/.htpasswd;\n}",
+    "references": [
+      "https://owasp.org/www-project-api-security/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-API-002": {
+    "title": "Multiple Open API Endpoints",
+    "description": "Multiple API endpoints are accessible without authentication.",
+    "risk": "HIGH",
+    "impact": "Widespread API exposure allows unauthorized access to application functionality and data.",
+    "remediation": "Implement authentication across all API endpoints:\n\nGlobal API authentication (Express):\nconst apiAuth = require('./middleware/api-auth');\napp.use('/api', apiAuth);\n\nBest practices:\n1. Require authentication for all API endpoints by default\n2. Use API keys or OAuth for access control\n3. Implement rate limiting per API key\n4. Log all API access\n5. Use HTTPS only for APIs\n6. Validate and sanitize all inputs\n\nExample comprehensive API security:\nconst rateLimit = require('express-rate-limit');\nconst apiLimiter = rateLimit({\n  windowMs: 15 * 60 * 1000,\n  max: 100\n});\n\napp.use('/api', apiLimiter);\napp.use('/api', authenticate);\napp.use('/api', validateApiKey);\napp.use('/api', auditLog);",
+    "references": [
+      "https://owasp.org/www-project-api-security/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-ERROR-001": {
+    "title": "Verbose Error Pages Detected",
+    "description": "Error pages expose sensitive information such as stack traces, file paths, or framework details.",
+    "risk": "MEDIUM",
+    "impact": "Information disclosure aids attackers in identifying vulnerabilities and planning attacks.",
+    "remediation": "Disable detailed error messages in production:\n\nFor PHP (php.ini):\ndisplay_errors = Off\nlog_errors = On\nerror_log = /var/log/php_errors.log\n\nFor Node.js/Express:\nif (process.env.NODE_ENV === 'production') {\n  app.use((err, req, res, next) => {\n    res.status(500).json({ error: 'Internal server error' });\n  });\n}\n\nFor Django (settings.py):\nDEBUG = False\nALLOWED_HOSTS = ['yourdomain.com']\n\nFor ASP.NET (web.config):\n<system.web>\n  <customErrors mode=\"On\" defaultRedirect=\"~/Error\">\n    <error statusCode=\"404\" redirect=\"~/Error/NotFound\" />\n    <error statusCode=\"500\" redirect=\"~/Error/ServerError\" />\n  </customErrors>\n</system.web>\n\nBest practices:\n1. Log errors server-side\n2. Show generic error messages to users\n3. Never expose stack traces\n4. Hide framework versions\n5. Remove debug endpoints in production",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-ERROR-002": {
+    "title": "Multiple Verbose Error Patterns Detected",
+    "description": "Error pages expose multiple types of sensitive information including stack traces, file paths, and framework details.",
+    "risk": "HIGH",
+    "impact": "Extensive information disclosure significantly aids attackers in identifying vulnerabilities.",
+    "remediation": "Immediately disable all verbose error output:\n\n1. Set application to production mode\n2. Disable debug mode completely\n3. Configure custom error pages\n4. Enable comprehensive server-side logging\n\nExample production configuration:\n\nPHP:\ndisplay_errors = Off\ndisplay_startup_errors = Off\nlog_errors = On\nerror_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT\n\nNode.js:\nprocess.env.NODE_ENV = 'production';\napp.use((err, req, res, next) => {\n  console.error(err.stack); // Log server-side only\n  res.status(500).send('Server Error');\n});\n\nDjango:\nDEBUG = False\nSECURE_SSL_REDIRECT = True\nSESSION_COOKIE_SECURE = True\nCSRF_COOKIE_SECURE = True\n\nUrgent actions:\n1. Verify production mode is enabled\n2. Test error pages with non-sensitive information\n3. Review server logs for errors (don't expose to users)\n4. Set up proper monitoring/alerting\n5. Remove any debug endpoints or tools",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-CACHE-001": {
+    "title": "Missing Cache-Control on Sensitive Path",
+    "description": "A sensitive path (login, account, admin) does not have proper Cache-Control headers to prevent caching of sensitive data.",
+    "risk": "LOW",
+    "impact": "Sensitive information may be cached by browsers or intermediary proxies, potentially exposing user data.",
+    "remediation": "Add Cache-Control headers to prevent caching on sensitive paths:\n\nCache-Control: no-store, no-cache, must-revalidate, private\nPragma: no-cache\nExpires: 0\n\nFor Apache (.htaccess in sensitive directories):\n<FilesMatch \"\\.(html|htm|php)$\">\n    Header set Cache-Control \"no-store, no-cache, must-revalidate, private\"\n    Header set Pragma \"no-cache\"\n    Header set Expires \"0\"\n</FilesMatch>\n\nFor Nginx:\nlocation ~ ^/(login|account|admin) {\n    add_header Cache-Control \"no-store, no-cache, must-revalidate, private\" always;\n    add_header Pragma \"no-cache\" always;\n    add_header Expires \"0\" always;\n}\n\nFor Express/Node.js:\napp.use('/login', (req, res, next) => {\n  res.set({\n    'Cache-Control': 'no-store, no-cache, must-revalidate, private',\n    'Pragma': 'no-cache',\n    'Expires': '0'\n  });\n  next();\n});",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/06-Testing_for_Browser_Cache_Weaknesses",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"
+    ]
+  },
+  "SEC-CACHE-002": {
+    "title": "Multiple Sensitive Paths Without Cache-Control",
+    "description": "Multiple sensitive paths lack proper Cache-Control headers, creating widespread caching risks.",
+    "risk": "MEDIUM",
+    "impact": "Widespread caching of sensitive data increases the risk of information disclosure through browser history or proxy caches.",
+    "remediation": "Implement global Cache-Control policy for all sensitive paths:\n\nFor Apache (httpd.conf or .htaccess):\n<LocationMatch \"^/(login|account|admin|profile|settings|api)\">\n    Header always set Cache-Control \"no-store, no-cache, must-revalidate, private\"\n    Header always set Pragma \"no-cache\"\n    Header always set Expires \"0\"\n</LocationMatch>\n\nFor Nginx:\nlocation ~ ^/(login|account|admin|profile|settings|api) {\n    add_header Cache-Control \"no-store, no-cache, must-revalidate, private\" always;\n    add_header Pragma \"no-cache\" always;\n    add_header Expires \"0\" always;\n}\n\nFor Express/Node.js with middleware:\nconst noCacheMiddleware = (req, res, next) => {\n  res.set({\n    'Cache-Control': 'no-store, no-cache, must-revalidate, private',\n    'Pragma': 'no-cache',\n    'Expires': '0'\n  });\n  next();\n};\n\napp.use(['/login', '/account', '/admin', '/api'], noCacheMiddleware);\n\nBest practices:\n1. Apply to all authenticated endpoints\n2. Include API endpoints\n3. Test with browser dev tools (Network tab)\n4. Consider using Cache-Control: no-store alone (simplest)\n5. For public content, use appropriate cache durations",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/06-Testing_for_Browser_Cache_Weaknesses",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching"
+    ]
+  },
+  "SEC-ENUM-001": {
+    "title": "User Enumeration Vulnerability",
+    "description": "An endpoint allows user enumeration, enabling attackers to identify valid usernames or user IDs.",
+    "risk": "MEDIUM",
+    "impact": "Attackers can harvest valid usernames to focus password attacks, phishing campaigns, or other targeted attacks.",
+    "remediation": "Restrict access to user enumeration endpoints:\n\nFor WordPress:\n1. Disable REST API user endpoints:\nadd_filter('rest_endpoints', function($endpoints) {\n    if (isset($endpoints['/wp/v2/users'])) {\n        unset($endpoints['/wp/v2/users']);\n    }\n    if (isset($endpoints['/wp/v2/users/(?P<id>[\\d]+)'])) {\n        unset($endpoints['/wp/v2/users/(?P<id>[\\d]+)']);\n    }\n    return $endpoints;\n});\n\n2. Disable author archives:\nif (!is_admin()) {\n    if (preg_match('/author=([0-9]*)/i', $_SERVER['QUERY_STRING'])) {\n        wp_redirect(home_url(), 301);\n        exit;\n    }\n}\n\nFor custom APIs:\n1. Require authentication for user listing endpoints\n2. Implement rate limiting\n3. Return generic error messages (don't reveal if user exists)\n4. Use UUIDs instead of incremental IDs\n\nExample generic error:\n// Bad: \"User not found\" vs \"Invalid password\"\n// Good: \"Invalid credentials\" for both cases\n\nFor Nginx (block WordPress user endpoints):\nlocation ~* ^/wp-json/wp/v2/users {\n    deny all;\n}",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-responses"
+    ]
+  },
+  "SEC-ENUM-002": {
+    "title": "Multiple User Enumeration Vectors",
+    "description": "Multiple endpoints expose user enumeration capabilities, creating significant reconnaissance opportunities for attackers.",
+    "risk": "HIGH",
+    "impact": "Widespread user enumeration enables large-scale credential attacks and targeted phishing campaigns.",
+    "remediation": "Comprehensively secure all user enumeration vectors:\n\nFor WordPress (complete lockdown):\n// Disable REST API user endpoints\nadd_filter('rest_endpoints', function($endpoints) {\n    $user_endpoints = ['/wp/v2/users', '/wp/v2/users/(?P<id>[\\d]+)'];\n    foreach ($user_endpoints as $endpoint) {\n        if (isset($endpoints[$endpoint])) {\n            unset($endpoints[$endpoint]);\n        }\n    }\n    return $endpoints;\n});\n\n// Block author param enumeration\nadd_action('init', function() {\n    if (!is_admin() && preg_match('/author=([0-9]*)/i', $_SERVER['QUERY_STRING'])) {\n        wp_redirect(home_url(), 301);\n        exit;\n    }\n});\n\n// Remove author archives\nadd_action('template_redirect', function() {\n    if (is_author()) {\n        wp_redirect(home_url(), 301);\n        exit;\n    }\n});\n\nFor APIs (comprehensive protection):\n1. Require authentication for all user-related endpoints\n2. Implement aggressive rate limiting (e.g., 5 requests/minute)\n3. Use CAPTCHAs for public user lookups\n4. Monitor for enumeration attempts\n5. Use UUIDs instead of sequential IDs\n6. Return identical responses for valid/invalid users\n7. Add deliberate delays on failed attempts\n\nFor Nginx:\nlocation ~* ^/(wp-json/wp/v2/users|api/users|api/v1/users) {\n    # Require authentication\n    auth_basic \"API Access\";\n    auth_basic_user_file /etc/nginx/.htpasswd;\n    \n    # Or block entirely\n    # deny all;\n}",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+    ]
   }
 }

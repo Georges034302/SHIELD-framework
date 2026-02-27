@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 # JSON output formatting utilities
 
+# Helper to escape JSON strings safely
+json_escape() {
+    local str="$1"
+    # Replace backslash, then quotes, then newlines
+    str="${str//\\/\\\\}"
+    str="${str//\"/\\\"}"
+    str="${str//$'\n'/\\n}"
+    str="${str//$'\r'/}"
+    echo -n "$str"
+}
+
 # Initialize a step report
 init_report() {
     local step_name="$1"

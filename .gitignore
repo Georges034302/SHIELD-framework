@@ -1,5 +1,6 @@
 # Output directories
 test_output/
+scripts/test_output/
 out/
 *.log
 

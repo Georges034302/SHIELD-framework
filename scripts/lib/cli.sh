@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-OUT="./test_output"
+_CLI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUT="$_CLI_DIR/../../test_output"
 TIMEOUT=10
 
 usage() {
