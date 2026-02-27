@@ -1,0 +1,15 @@
+{
+  "step": "step2_headers",
+  "timestamp": "2026-02-27T12:29:48Z",
+  "target": "https://www.18fifty3.edu.au/",
+  "checks": [
+    {"name":"Strict-Transport-Security","status":"PASS","found":"max-age=63072000","expected":"max-age >= 31536000","severity":"INFO","remediation_id":""}
+,
+    {"name":"Clickjacking Protection","status":"FAIL","found":"missing","expected":"X-Frame-Options: DENY/SAMEORIGIN or CSP frame-ancestors","severity":"MEDIUM","remediation_id":"SEC-FRAME-001"}
+,
+    {"name":"X-Content-Type-Options","status":"FAIL","found":"missing","expected":"nosniff","severity":"LOW","remediation_id":"SEC-XCTO-001"}
+,
+    {"name":"Referrer-Policy","status":"WARN","found":"missing","expected":"strict-origin-when-cross-origin or stricter","severity":"LOW","remediation_id":"SEC-RP-001"}
+
+  ]
+}

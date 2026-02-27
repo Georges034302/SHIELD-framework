@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-OUT="./out"
+OUT="./test_output"
 TIMEOUT=10
 
 usage() {
   echo "Usage: $0 [options] <url1> [url2 ...]"
   echo "Options:"
-  echo "  -o <dir>     Output directory (default: ./out)"
+  echo "  -o <dir>     Output directory (default: ./test_output)"
   echo "  -t <sec>     Timeout seconds (default: 10)"
 }
 
