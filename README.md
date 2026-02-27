@@ -26,14 +26,14 @@ No server access required. No exploitation. No destructive testing.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| Step                       | Focus |
-|----------------------------|-------|
-| **1 — Scope** | Resolves target, detects WordPress, establishes baseline |
-| **2 — External Hardening** | HTTP security headers, TLS/cipher strength, certificate validity, HTTPS enforcement, server version disclosure |
-| **3 — Auth & Session** | Login rate limiting, brute force lockout, CAPTCHA, cookie flags, session fixation/rotation, timeout, username enumeration |
-| **4 — Authorization** | Admin paths, API auth, CORS, directory listing, file upload, backup exposure, path traversal, HTTP methods, WP config/plugins/XML-RPC |
-| **5 — Backdoor Detection** | Obfuscated JS, hidden iframes, cryptominers, SEO spam cloaking, webshell probing, exposed credentials/keys, threat intel (Spamhaus, AbuseIPDB, Google Safe Browsing) |
-| **6 — Infrastructure** | Open ports, DNS integrity (SPF/DMARC/MX), certificate transparency, subdomain enumeration, WAF fingerprinting, shared hosting |
+| Step                        | Focus |
+|-----------------------------|-------|
+| **1 — Scope**               | Resolves target, detects WordPress, establishes baseline |
+| **2 — External Hardening**  | HTTP security headers, TLS/cipher strength, certificate validity, HTTPS enforcement, server version disclosure |
+| **3 — Auth & Session**      | Login rate limiting, brute force lockout, CAPTCHA, cookie flags, session fixation/rotation, timeout, username enumeration |
+| **4 — Authorization**       | Admin paths, API auth, CORS, directory listing, file upload, backup exposure, path traversal, HTTP methods, WP config/plugins/XML-RPC |
+| **5 — Backdoor Detection**  | Obfuscated JS, hidden iframes, cryptominers, SEO spam cloaking, webshell probing, exposed credentials/keys, threat intel (Spamhaus, AbuseIPDB, Google Safe Browsing) |
+| **6 — Infrastructure**      | Open ports, DNS integrity (SPF/DMARC/MX), certificate transparency, subdomain enumeration, WAF fingerprinting, shared hosting |
 
 ---
 
