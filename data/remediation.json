@@ -905,5 +905,350 @@
       "https://documentation.cpanel.net/display/68Docs/WHM+Security+Advisor",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/"
     ]
+  },
+  "SEC-BACKDOOR-001": {
+    "title": "Hidden Iframe Injection Detected",
+    "description": "The page HTML contains one or more iframes that are hidden (display:none, visibility:hidden, zero dimensions, or offscreen positioning). This is a classic drive-by download and malware delivery technique used by attackers after compromising a site.",
+    "risk": "CRITICAL",
+    "impact": "Hidden iframes silently load attacker-controlled pages in the victim's browser, delivering drive-by exploits, credential phishing frames, or malware without the user's knowledge.",
+    "remediation": "1. IMMEDIATELY scan your site for injected iframes:\n   grep -r 'iframe' /var/www/html/ | grep -i 'display:none\\|visibility:hidden\\|width=0\\|height=0'\n\n2. Run WP file integrity check:\n   wp core verify-checksums\n   wp plugin verify-checksums --all\n\n3. Scan for malware with Wordfence:\n   Dashboard > Wordfence > Scan > Start New Scan\n\n4. Check recently modified files:\n   find /var/www/html -name '*.php' -newer /var/www/html/wp-login.php -mtime -30\n\n5. Review database for injected content:\n   SELECT option_name, option_value FROM wp_options WHERE option_value LIKE '%iframe%';\n   SELECT post_content FROM wp_posts WHERE post_content LIKE '%iframe%' AND post_status='publish';\n\n6. After cleaning, change ALL passwords:\n   - WordPress admin, database, FTP, hosting panel\n\n7. Implement a WAF (Cloudflare or Wordfence) to prevent re-injection\n\n8. Set up file change monitoring:\n   Wordfence > Options > Enable file change detection",
+    "references": [
+      "https://sucuri.net/guides/website-malware-removal/",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-side_Testing/"
+    ]
+  },
+  "SEC-BACKDOOR-002": {
+    "title": "SEO Spam / Pharma Backdoor Injection Detected",
+    "description": "The site serves spam content (pharmaceutical, casino, payday loan keywords) to search engine crawlers (Googlebot) that is not shown to normal visitors. This is a classic SEO spam backdoor used by attackers to monetize compromised sites without the owner noticing.",
+    "risk": "CRITICAL",
+    "impact": "Google and other search engines will eventually detect and penalize or de-index the site. Visitors may be redirected to malware or phishing pages. SEO spam is a strong indicator of an active, persistent backdoor on the server.",
+    "remediation": "ACTIVE COMPROMISE — clean immediately:\n\n1. Verify the cloaking: fetch your homepage with curl as Googlebot vs normal browser:\n   curl -s -A 'Googlebot/2.1' https://yourdomain.com | grep -i 'viagra\\|cialis\\|casino'\n\n2. Check .htaccess for redirect rules targeting bots:\n   cat /var/www/html/.htaccess\n   Look for: RewriteCond %{HTTP_USER_AGENT} (Googlebot|bingbot) rules\n\n3. Find compromised PHP files:\n   grep -r 'HTTP_USER_AGENT\\|preg_match.*bot\\|base64_decode' /var/www/html/ --include='*.php'\n\n4. Check wp_options for injected code:\n   SELECT * FROM wp_options WHERE option_value LIKE '%base64%' OR option_value LIKE '%eval%';\n\n5. Run Sucuri SiteCheck: https://sitecheck.sucuri.net/\n\n6. Use Google Search Console:\n   Search Console > Security & Manual Actions > Security Issues\n   Check what Google's crawler sees at your URL\n\n7. After cleaning, request Google re-review:\n   Search Console > Security Issues > Request Review",
+    "references": [
+      "https://developers.google.com/search/docs/monitor-debug/manual-actions",
+      "https://sucuri.net/guides/wordpress-hacked/"
+    ]
+  },
+  "SEC-BACKDOOR-003": {
+    "title": "Off-Site Meta Refresh Redirect Detected",
+    "description": "The page contains a <meta http-equiv='refresh'> tag pointing to an external domain. This is used by attackers to silently redirect all visitors to malware, phishing, or spam pages.",
+    "risk": "HIGH",
+    "impact": "All site visitors are silently redirected to attacker-controlled pages, delivering malware, phishing forms, or scam content without any interaction required.",
+    "remediation": "1. Locate injected meta refresh tags:\n   grep -r 'http-equiv.*refresh' /var/www/html/ --include='*.php' --include='*.html'\n\n2. Check WordPress theme files:\n   grep -r 'meta.*refresh' /var/www/html/wp-content/themes/\n   grep -r 'meta.*refresh' /var/www/html/wp-content/plugins/\n\n3. Check the database:\n   SELECT * FROM wp_posts WHERE post_content LIKE '%http-equiv%refresh%';\n\n4. Remove the injected code and run a full malware scan\n\n5. Legitimate use: if you added the redirect intentionally, use a 301 redirect in .htaccess or wp-config.php instead of a meta refresh — it is faster and more reliable",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/04-Testing_for_HTTP_Redirect"
+    ]
+  },
+  "SEC-CLOAK-001": {
+    "title": "Content Cloaking Detected — Different Content Served to Bots vs Users",
+    "description": "The site serves significantly different HTML content to search engine crawlers (Googlebot, Bingbot) or to visitors arriving via Google search (Referer: google.com) than to normal visitors. Cloaking is a black-hat SEO technique and is also used to deliver spam or malware without the site owner's knowledge after a compromise.",
+    "risk": "CRITICAL",
+    "impact": "Google will eventually detect and penalize or de-index the site. Users may be served malware. The site owner is actively deceived about what their site is serving. This is a near-certain indicator of an active backdoor or malicious plugin.",
+    "remediation": "Verify the cloaking manually:\n   curl -s -A 'Googlebot/2.1' https://yourdomain.com > bot_response.html\n   curl -s https://yourdomain.com > normal_response.html\n   diff bot_response.html normal_response.html\n\nAlso test with Google's URL Inspection tool:\n   Google Search Console > URL Inspection > enter your URL > View Crawled Page\n\nIf cloaking is confirmed:\n1. Scan .htaccess for user-agent conditional rules:\n   cat /var/www/html/.htaccess | grep -i 'RewriteCond.*USER_AGENT'\n\n2. Find PHP files doing UA checks:\n   grep -rn 'HTTP_USER_AGENT' /var/www/html/ --include='*.php'\n\n3. Check for conditional plugins:\n   Deactivate all plugins, then re-test to identify which plugin is responsible\n\n4. Check wp_options for injected rules:\n   SELECT * FROM wp_options WHERE option_value LIKE '%Googlebot%';\n\n5. After cleaning, request Google re-crawl via Search Console",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/cloaking",
+      "https://sucuri.net/guides/wordpress-hacked/"
+    ]
+  },
+  "SEC-DNS-003": {
+    "title": "MX Record Anomaly — Possible Mail Server Hijack",
+    "description": "One or more MX records point to hosts that do not resolve, resolve to unexpected IP addresses, or show signs of hijacking. This can indicate DNS zone compromise or misconfiguration that allows email interception.",
+    "risk": "HIGH",
+    "impact": "If MX records are hijacked, all inbound email (including password reset links, 2FA codes, and business communications) is delivered to an attacker-controlled mail server.",
+    "remediation": "1. Verify your current MX records:\n   dig MX yourdomain.com\n   Each MX record should point to your mail provider's hostname\n\n2. Verify each MX host resolves correctly:\n   dig A mail.yourdomain.com\n   Should match your mail provider's IP ranges\n\n3. If MX records are wrong:\n   - Immediately update DNS at your registrar/DNS provider\n   - Check DNS zone file for unauthorized changes\n   - Check registrar account for unauthorized logins\n   - Change registrar and DNS provider passwords\n   - Enable DNS lock / registrar lock to prevent unauthorized changes\n\n4. Set up DMARC monitoring:\n   v=DMARC1; p=quarantine; rua=mailto:dmarc@yourdomain.com\n   This will alert you if your domain is used to send unauthorized email\n\n5. Consider DNSSEC to cryptographically protect your DNS records",
+    "references": [
+      "https://www.icann.org/resources/pages/dnssec-what-is-it-why-important-2019-03-05-en",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-DNS-004": {
+    "title": "Wildcard DNS Active or DNS Resolution Inconsistency",
+    "description": "A wildcard DNS record resolves all subdomains, or the domain resolves to different IPs on different resolvers. Wildcard DNS can enable subdomain takeover or mask malicious subdomains. Resolution inconsistency may indicate DNS hijacking, split DNS misconfiguration, or recent compromise.",
+    "risk": "MEDIUM",
+    "impact": "Wildcard DNS allows any subdomain to be resolved, making subdomain takeover trivial. DNS inconsistency can indicate an attacker has modified DNS responses in transit (DNS hijacking) or that DNS propagation of a recent change has not completed.",
+    "remediation": "Wildcard DNS:\n1. Check if wildcard is intentional:\n   dig anything-random.yourdomain.com\n   If it resolves, you have a wildcard.\n\n2. If not needed, remove the wildcard record from your DNS zone:\n   # Remove: *.yourdomain.com A/CNAME record\n\n3. If needed (e.g., for SaaS), restrict what the wildcard resolves to and monitor for subdomain takeover via crt.sh\n\nDNS inconsistency:\n1. Check resolution across multiple resolvers:\n   dig @8.8.8.8 yourdomain.com\n   dig @1.1.1.1 yourdomain.com\n   dig @9.9.9.9 yourdomain.com\n\n2. If consistently inconsistent, check for DNS cache poisoning or router compromise\n\n3. Enable DNSSEC to prevent cache poisoning:\n   cloudflare.com DNS: Enable DNSSEC in one click\n   Route53: Enable in hosted zone settings",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/10-Test_for_Subdomain_Takeover"
+    ]
+  },
+  "SEC-DNS-005": {
+    "title": "Suspicious or Unauthorized TXT Records Detected",
+    "description": "The domain's TXT records contain unexpected entries that do not match known service verification patterns. Attackers sometimes use TXT records for C2 communication, domain ownership bypass, or to signal compromised infrastructure.",
+    "risk": "HIGH",
+    "impact": "Unauthorized TXT records may be used for covert command-and-control communication, indicate DNS zone compromise, or allow an attacker to bypass domain ownership verification to obtain fraudulent certificates.",
+    "remediation": "1. Audit all TXT records:\n   dig TXT yourdomain.com\n   dig TXT _dmarc.yourdomain.com\n   dig TXT mail._domainkey.yourdomain.com\n\n2. Expected legitimate TXT records include:\n   - SPF: v=spf1 ...\n   - DMARC: v=DMARC1;\n   - DKIM: v=DKIM1; k=rsa; p=...\n   - Google/Microsoft/other service verification tokens\n   - CAA records (though these are type CAA, not TXT)\n\n3. Remove any TXT records you do not recognise:\n   Log in to your DNS provider and delete suspicious records\n\n4. Check DNS provider account for unauthorized access:\n   Review login history, change password, enable MFA\n\n5. Consider DNSSEC to prevent unauthorized record modification",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc7208",
+      "https://dmarc.org/"
+    ]
+  },
+  "SEC-ENV-001": {
+    "title": "Credentials or Private Key Accessible from Web Root",
+    "description": "A file containing credentials, API keys, private SSL/SSH keys, or database connection strings is readable from the web. Files such as .env, .htpasswd, id_rsa, server.key, or web.config are accessible via HTTP GET.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: Exposed credentials give attackers immediate access to databases, cloud accounts, APIs, and servers. Exposed private keys allow SSL certificate impersonation and SSH server access. This is a complete compromise of all systems covered by those credentials.",
+    "remediation": "IMMEDIATE ACTION REQUIRED:\n\n1. Take file offline (move outside web root or block access):\n   mv /var/www/html/.env /var/www/.env\n   # Then update app config to read from new path\n\n2. Rotate ALL exposed credentials immediately:\n   - Database passwords\n   - API keys (regenerate in each service's dashboard)\n   - SSH keys (generate new keypair, remove old authorized_key)\n   - SSL certificates (revoke via CA if private key exposed)\n\n3. Block sensitive file access in Nginx:\n   location ~* /(\\.|id_rsa|server\\.key|\\.env|\\.htpasswd|web\\.config|composer\\.lock|package\\.json)$ {\n       deny all;\n   }\n\n4. Apache — block sensitive files:\n   <FilesMatch '^(\\.(env|git|htpasswd|DS_Store)|id_rsa|server\\.key|web\\.config)$'>\n       Order Allow,Deny\n       Deny from all\n   </FilesMatch>\n\n5. Store secrets in environment variables or a secrets manager:\n   - AWS Secrets Manager, HashiCorp Vault, or .env file outside web root\n   - Never commit .env to git: add to .gitignore\n\n6. Audit git history for committed secrets:\n   git log --all --full-history -- .env\n   Use truffleHog or gitleaks to scan git history",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-ENV-002": {
+    "title": "Sensitive Configuration or Source Files Exposed",
+    "description": "Configuration or source files (composer.lock, package.json, Dockerfile, .DS_Store, error_log, web.config) are accessible from the web, exposing application structure, exact dependency versions, or error history to attackers.",
+    "risk": "HIGH",
+    "impact": "composer.lock and package.json expose exact dependency versions, allowing attackers to identify and exploit known CVEs. Dockerfiles reveal infrastructure. Error logs expose file paths and stack traces. .DS_Store allows enumeration of hidden directory contents.",
+    "remediation": "Block all non-public files from web access:\n\nNginx:\nlocation ~* /(composer\\.lock|package(-lock)?\\.json|Dockerfile|docker-compose\\.ya?ml|\\.DS_Store|error_log|\\.log|web\\.config)$ {\n    deny all;\n    return 404;\n}\n\nApache .htaccess:\n<FilesMatch '(composer\\.lock|package\\.json|Dockerfile|\\.DS_Store|error_log|web\\.config)$'>\n    Order Allow,Deny\n    Deny from all\n</FilesMatch>\n\nDisable PHP error logging to web-accessible paths:\n# php.ini:\nerror_log = /var/log/php_errors.log\n# (not /var/www/html/error.log)\n\nMove configuration files outside the web root:\n/var/www/ (parent of html/)\n  composer.json\n  package.json\n/var/www/html/ (web root — only public files)\n\nDisable .DS_Store generation on Mac:\ndefaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information"
+    ]
+  },
+  "SEC-MALJS-001": {
+    "title": "Obfuscated JavaScript Detected in Page Source",
+    "description": "The page HTML contains heavily obfuscated JavaScript using techniques like eval(atob()), String.fromCharCode(), packed JS (p,a,c,k,e,d), or unescape() with large encoded strings. This is the primary delivery mechanism for browser exploits, credential stealers, and cryptominers.",
+    "risk": "CRITICAL",
+    "impact": "Obfuscated JS is used to hide malicious code from source code inspection. Common payloads include: keyloggers stealing form input, cryptominers using visitor CPU, drive-by exploit kits targeting browser vulnerabilities, and session token stealers.",
+    "remediation": "1. Identify the obfuscated script's source:\n   View page source → find the eval/atob/fromCharCode block\n   Check if it's inline or loaded from external URL\n\n2. Decode to inspect (safely, in isolated environment):\n   # Use an online decoder: https://deobfuscate.io or https://beautifier.io\n   # Never run unknown JS on your machine\n\n3. If inline, search for origin in WordPress:\n   grep -r 'eval\\|atob\\|fromCharCode' /var/www/html/ --include='*.php' --include='*.js'\n   SELECT * FROM wp_options WHERE option_value LIKE '%eval(%';\n\n4. If loaded from external URL, block it immediately:\n   # Add to .htaccess or wp-config.php to remove the enqueue\n\n5. Implement a strict Content Security Policy to block unauthorized scripts:\n   Content-Security-Policy: script-src 'self' https://trusted-cdn.com;\n   This prevents any script not on your whitelist from executing\n\n6. Run Wordfence full scan and Sucuri SiteCheck",
+    "references": [
+      "https://owasp.org/www-community/attacks/Malicious_Content_Injection",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-MALJS-002": {
+    "title": "Unknown External Script Sources Detected",
+    "description": "The page loads JavaScript from external domains that are not recognized as the site's own domain or known trusted CDNs (cdnjs, jsDelivr, Google APIs, etc.). Unknown external scripts execute with full page access, including form data and cookies.",
+    "risk": "MEDIUM",
+    "impact": "Any external script has complete access to your page's DOM, form input (including passwords), cookies, and can perform any action the user can. A compromised external CDN or malicious script injection results in immediate data theft for all visitors.",
+    "remediation": "1. Audit all external scripts being loaded:\n   View page source → list all <script src=\"http...\">\n   Verify each against your list of intentionally included third-party services\n\n2. Implement Subresource Integrity (SRI) for external scripts:\n   <!-- Generated at: https://www.srihash.org/ -->\n   <script src=\"https://cdn.example.com/script.js\"\n     integrity=\"sha384-...\"\n     crossorigin=\"anonymous\"></script>\n   SRI prevents script execution if the CDN delivers tampered content\n\n3. Implement a strict Content Security Policy:\n   Content-Security-Policy: script-src 'self' https://allowed-cdn.com;\n   Blocks any script source not explicitly listed\n\n4. Remove any scripts you did not intentionally add:\n   Check for injected wp_enqueue_script calls in functions.php\n   Check all active plugins for unexpected external script loading\n\n5. Monitor with a WAF that alerts on new external resource additions",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-MINER-001": {
+    "title": "Cryptominer Script Detected",
+    "description": "The page loads or references a known cryptocurrency mining library (Coinhive, CryptoNight, webminerpool, minero.cc, etc.) that uses visitor browser CPU power to mine cryptocurrency without the visitor's knowledge or consent.",
+    "risk": "CRITICAL",
+    "impact": "All site visitors have their browser CPU hijacked for cryptomining, causing significant performance degradation, battery drain, and overheating. This is an illegal practice in most jurisdictions (Computer Misuse Act / CFAA) and results in Google Safe Browsing flagging and browser extensions blocking the site.",
+    "remediation": "ACTIVE COMPROMISE — remove immediately:\n\n1. Find the miner script:\n   grep -r 'coinhive\\|cryptonight\\|webminerpool\\|minero\\|coin-hive\\|miner\\.' \\\n     /var/www/html/ --include='*.php' --include='*.js' --include='*.html'\n\n2. Check WordPress database:\n   SELECT option_name, option_value FROM wp_options\n   WHERE option_value LIKE '%coinhive%' OR option_value LIKE '%miner%';\n\n3. Remove the miner code and run full malware scan (Wordfence)\n\n4. Change all passwords after cleanup (the miner was installed by an attacker)\n\n5. Implement CSP to prevent future injection:\n   Content-Security-Policy: script-src 'self' 'nonce-RANDOM';\n   This blocks any script not explicitly nonce-approved\n\n6. Report to relevant authorities if applicable\n\n7. After cleanup, check Google Search Console for Safe Browsing alerts and request review",
+    "references": [
+      "https://www.google.com/transparencyreport/safebrowsing/",
+      "https://owasp.org/www-community/attacks/Malicious_Content_Injection"
+    ]
+  },
+  "SEC-PORT-001": {
+    "title": "Database or Critical Service Port Exposed to Internet",
+    "description": "A critical service port is accessible from the internet: database servers (MySQL 3306, PostgreSQL 5432, MongoDB 27017, Redis 6379), remote access (RDP 3389, VNC 5900), or known backdoor/reverse-shell ports (4444, 1337, 31337, 8888).",
+    "risk": "CRITICAL",
+    "impact": "Direct internet exposure of database ports allows brute-force attacks, exploitation of database-specific CVEs, and unauthenticated access if default credentials are in use. Backdoor ports indicate an active reverse shell listener — the server is likely already compromised.",
+    "remediation": "CLOSE THESE PORTS IMMEDIATELY:\n\n1. Firewall all non-HTTP/HTTPS ports from internet access:\n   # UFW (Ubuntu):\n   ufw default deny incoming\n   ufw allow 22/tcp  # SSH — restrict to your IP if possible\n   ufw allow 80/tcp\n   ufw allow 443/tcp\n   ufw enable\n\n2. iptables — block database ports from external access:\n   iptables -A INPUT -p tcp --dport 3306 ! -s 127.0.0.1 -j DROP\n   iptables -A INPUT -p tcp --dport 5432 ! -s 127.0.0.1 -j DROP\n   iptables -A INPUT -p tcp --dport 27017 -j DROP\n   iptables -A INPUT -p tcp --dport 6379 -j DROP\n\n3. MySQL — bind to localhost only:\n   # /etc/mysql/mysql.conf.d/mysqld.cnf:\n   bind-address = 127.0.0.1\n\n4. Redis — bind to localhost:\n   # /etc/redis/redis.conf:\n   bind 127.0.0.1\n   requirepass YOUR_STRONG_PASSWORD\n\n5. If backdoor ports are open (4444, 1337, 31337):\n   lsof -i :4444  # Find what process is listening\n   netstat -tlnp | grep 4444\n   The server is likely compromised — perform full incident response",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Permission",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Network_Segmentation_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-PORT-002": {
+    "title": "Admin Panel or Non-Standard Service Port Exposed",
+    "description": "Admin panel ports (cPanel 2082/2083, Plesk 8443, Webmin 10000, phpMyAdmin 7080) or non-standard service ports are internet-accessible, providing attack surface for brute force and exploitation.",
+    "risk": "HIGH",
+    "impact": "Exposed admin panels allow unlimited brute-force attacks against hosting control panels. A compromised cPanel gives an attacker full control over all hosted sites, databases, email, and DNS.",
+    "remediation": "Restrict admin panel access to known IPs only:\n\n1. UFW — allow admin ports only from your IP:\n   ufw allow from YOUR_IP to any port 2082\n   ufw allow from YOUR_IP to any port 2083\n   ufw allow from YOUR_IP to any port 8443\n   ufw deny 2082\n   ufw deny 2083\n\n2. cPanel WHM Host Access Control:\n   WHM > Security Center > Host Access Control\n   Deny all by default, allow only your IP\n\n3. Use Cloudflare Tunnel or Tailscale to access admin panels without exposing ports:\n   cloudflared tunnel create admin-access\n\n4. Enable 2FA on all admin panels:\n   cPanel: Two-Factor Authentication under Security\n\n5. Disable unused services:\n   service webmin stop && systemctl disable webmin",
+    "references": [
+      "https://documentation.cpanel.net/display/68Docs/WHM+Security+Advisor"
+    ]
+  },
+  "SEC-SHELL-001": {
+    "title": "Known Webshell Path Accessible",
+    "description": "A URL matching a known webshell path (c99.php, r57.php, wso.php, alfa.php, shell.php, cmd.php, etc.) returned a non-404 response. This is a near-certain indicator of an installed webshell giving attackers remote command execution.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: An active webshell gives an attacker a persistent backdoor with full server command execution capabilities — read/write any file, execute system commands, pivot to other internal servers, exfiltrate all data, and install further malware.",
+    "remediation": "INCIDENT RESPONSE — treat as active compromise:\n\n1. IMMEDIATELY block web access to the shell and take it offline:\n   mv /var/www/html/shell.php /tmp/shell.php.bak\n   Or block it via nginx/Apache rule while you investigate\n\n2. Preserve evidence before deleting:\n   cp /var/www/html/shell.php /tmp/evidence_$(date +%s).php\n\n3. Find all similar files:\n   find /var/www/html -name '*.php' | xargs grep -l 'eval.*base64_decode\\|system.*_GET\\|passthru\\|shell_exec' 2>/dev/null\n\n4. Check server access logs for shell usage:\n   grep 'shell.php\\|cmd.php\\|r57.php\\|c99.php' /var/log/nginx/access.log\n   Look for POST requests — this is how shells are typically controlled\n\n5. Determine attacker's entry point:\n   - Check upload script vulnerabilities\n   - Check FTP logs for unauthorized uploads\n   - Check for exploited plugins (file manager, Upload plugins)\n\n6. Rotate ALL credentials, check for new admin users, check for cron backdoors:\n   crontab -l && crontab -u www-data -l\n   SELECT * FROM wp_users WHERE user_registered > DATE_SUB(NOW(), INTERVAL 30 DAY);\n\n7. Consider engaging a security incident response professional",
+    "references": [
+      "https://owasp.org/www-community/attacks/Web_Shell_Upload",
+      "https://sucuri.net/guides/website-malware-removal/"
+    ]
+  },
+  "SEC-THREAT-001": {
+    "title": "Server IP or Domain Listed on Threat Intelligence Blocklists",
+    "description": "The server's IP address is listed on Spamhaus ZEN (spam/malware blocklist) or the domain is listed on Spamhaus DBL (domain blocklist), indicating the server has been used to send spam, host malware, or is associated with botnet activity.",
+    "risk": "HIGH",
+    "impact": "Blocklist listing causes: email delivery failures (all outbound email is rejected or spam-filtered), browser security warnings, and reputation damage. It is also a strong indicator that the server has been or currently is compromised.",
+    "remediation": "1. Check exactly which blocklists you're on:\n   https://mxtoolbox.com/blacklists.aspx\n   https://www.spamhaus.org/lookup/\n\n2. Identify why you were listed:\n   - Spamhaus ZEN: your IP sent spam (compromised site sending email)\n   - Spamhaus DBL: your domain hosted malware or phishing pages\n\n3. Clean the compromise:\n   - Scan for malware/backdoors: Wordfence full scan\n   - Check PHP mail() abuse: grep -r 'mail(' /var/www/html/ | grep -v '.php#'\n   - Check cron jobs for spam scripts: crontab -l && crontab -u www-data -l\n\n4. Request delisting after cleaning:\n   https://www.spamhaus.org/delist/\n   Provide evidence of cleanup — most delistings happen within 24 hours\n\n5. Prevent future spam from your server:\n   # Disable PHP mail() via php.ini:\n   sendmail_path = /bin/false\n   # Instead, use authenticated SMTP (SendGrid, Mailgun, SES)",
+    "references": [
+      "https://www.spamhaus.org/faqs/",
+      "https://mxtoolbox.com/blacklists.aspx"
+    ]
+  },
+  "SEC-THREAT-002": {
+    "title": "Suspicious Reverse DNS — IP Resolves to Unrelated or Suspicious Host",
+    "description": "The server's IP address reverse-resolves (PTR record) to a hostname that does not match the target domain — indicating shared/bulletproof hosting, a recently migrated IP, or an IP assigned to a potentially malicious hosting provider.",
+    "risk": "HIGH",
+    "impact": "Reverse DNS mismatch reduces email deliverability. Resolving to a bulletproof hosting provider indicates the infrastructure may be intentionally chosen to avoid takedown of malicious activity.",
+    "remediation": "1. Check current reverse DNS:\n   dig -x $(dig +short yourdomain.com) +short\n\n2. Set correct PTR record:\n   - On dedicated hosting: ask your host to create a PTR record pointing to yourdomain.com\n   - On cloud (AWS EC2): use an Elastic IP and set reverse DNS in the AWS console\n   - On Linode/DigitalOcean: set hostname in droplet/linode settings to match your domain\n\n3. Good PTR format: mail.yourdomain.com → points back to yourdomain.com\n\n4. If currently on bulletproof hosting:\n   Consider migrating to legitimate hosting infrastructure\n   This will also improve email deliverability and SEO trust signals",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc1912"
+    ]
+  },
+  "SEC-THREAT-003": {
+    "title": "Domain Flagged by Google Safe Browsing",
+    "description": "Google Safe Browsing has flagged this domain as hosting malware, phishing content, or unwanted software. This results in browser warnings for all visitors using Chrome, Firefox, and Safari.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: All major browsers (Chrome, Firefox, Safari) display a full-page red warning blocking visitors from accessing the site. This effectively takes the site offline for most users and causes immediate loss of traffic, trust, and revenue.",
+    "remediation": "URGENT — this is an active block affecting all visitors:\n\n1. Verify the flag:\n   https://transparencyreport.google.com/safe-browsing/search?url=yourdomain.com\n   Note the specific threat type (malware/phishing/unwanted software)\n\n2. Clean the compromise (see relevant remediation based on threat type):\n   - Malware: Wordfence scan, file integrity check, malware removal\n   - Phishing: Remove phishing pages, check for injected content\n   - Unwanted software: Remove aggressive ad scripts, deceptive downloads\n\n3. Request Google review after cleanup:\n   Google Search Console > Security & Manual Actions > Security Issues\n   Click 'Request Review' after verifying cleanup is complete\n   Review typically takes 1-3 days\n\n4. Monitor with Google Search Console to receive future alerts immediately\n\n5. Implement a WAF to prevent future compromise",
+    "references": [
+      "https://developers.google.com/search/docs/monitor-debug/manual-actions",
+      "https://safebrowsing.google.com/safebrowsing/report_phish/"
+    ]
+  },
+  "SEC-TLS-004": {
+    "title": "HSTS Header Missing or Disabled",
+    "description": "The Strict-Transport-Security (HSTS) header is absent or has max-age=0, meaning browsers are not instructed to always use HTTPS. This leaves the site vulnerable to SSL stripping attacks on first visit and on unsecured networks.",
+    "risk": "MEDIUM",
+    "impact": "Without HSTS, an attacker on the same network (coffee shop, airport WiFi) can perform an SSL strip attack: intercepting the first HTTP request before the browser upgrades to HTTPS, allowing full MITM of all traffic including credentials.",
+    "remediation": "Add HSTS header to all HTTPS responses:\n\nNginx:\nserver {\n    listen 443 ssl;\n    add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload' always;\n}\n\nApache:\n# httpd.conf or .htaccess (inside VirtualHost for port 443):\nHeader always set Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload'\n\nWordPress (via Nginx/Apache as above, not via PHP)\n\nVerify:\ncurl -I https://yourdomain.com | grep -i strict\n\nOptional: HSTS preloading (permanent):\n1. Ensure max-age=31536000, includeSubDomains, preload are set\n2. Submit at: https://hstspreload.org/\n3. WARNING: Once preloaded, removing HTTPS breaks the site in Chrome/Firefox — only preload if you are committed to HTTPS permanently",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
+      "https://hstspreload.org/"
+    ]
+  },
+  "SEC-WPCONF-001": {
+    "title": "wp-config.php or WordPress Config File Accessible from Web",
+    "description": "WordPress configuration files (wp-config.php, wp-config.php.bak, wp-config-sample.php, .wp-config.php.swp) are accessible via HTTP, potentially exposing database credentials, security keys, and table prefixes.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: wp-config.php contains the database hostname, name, username, and password. With these credentials an attacker can access the entire WordPress database directly, extract all content and user password hashes, inject malware, or create new admin accounts.",
+    "remediation": "1. Block direct web access to config files (should work by default in WordPress):\n   # Add to .htaccess (Apache):\n   <files wp-config.php>\n       order allow,deny\n       deny from all\n   </files>\n\n2. Delete backup copies:\n   rm /var/www/html/wp-config.php.bak\n   rm /var/www/html/wp-config.php.old\n\n3. Move wp-config.php one directory ABOVE the web root:\n   mv /var/www/html/wp-config.php /var/www/wp-config.php\n   WordPress automatically looks one level up\n\n4. Set strict file permissions:\n   chmod 400 /var/www/wp-config.php\n   chown www-data:www-data /var/www/wp-config.php\n\n5. If credentials were exposed, rotate immediately:\n   ALTER USER 'wpuser'@'localhost' IDENTIFIED BY 'new-strong-password';\n   Update DB_PASSWORD in wp-config.php\n   Generate new security keys: https://api.wordpress.org/secret-key/1.1/salt/\n\n6. Check for new admin accounts and review server access logs for DB connection attempts from external IPs",
+    "references": [
+      "https://wordpress.org/documentation/article/hardening-wordpress/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/WordPress_Security_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-WPDEBUG-001": {
+    "title": "WordPress Debug Mode Active — PHP Errors Exposed",
+    "description": "WP_DEBUG is enabled and PHP errors are being displayed on-page, or the Query Monitor plugin is active and exposing database queries and performance data to unauthenticated visitors.",
+    "risk": "HIGH",
+    "impact": "Debug output exposes: full filesystem paths, PHP version details, database query structure (aids SQL injection), plugin names and versions, and internal application logic. This is a complete application information disclosure.",
+    "remediation": "Disable debug output on production:\n\n# wp-config.php:\ndefine('WP_DEBUG', false);\ndefine('WP_DEBUG_LOG', false);\ndefine('WP_DEBUG_DISPLAY', false);\n@ini_set('display_errors', 0);\n\n# If you need debug logging without display:\ndefine('WP_DEBUG', true);\ndefine('WP_DEBUG_LOG', true);   // Logs to wp-content/debug.log\ndefine('WP_DEBUG_DISPLAY', false);  // Does NOT show on page\n@ini_set('display_errors', 0);\n\n# Then block web access to debug.log:\n# .htaccess in wp-content/:\n<Files debug.log>\n    Order allow,deny\n    Deny from all\n</Files>\n\nQuery Monitor plugin:\n- Dashboard > Plugins > Deactivate Query Monitor on production\n- Or restrict it to admins only via its settings",
+    "references": [
+      "https://wordpress.org/documentation/article/debugging-in-wordpress/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-WPDEBUG-002": {
+    "title": "WordPress debug.log or Error Log Accessible from Web",
+    "description": "The debug.log file (created by WP_DEBUG_LOG=true) or a PHP/server error log is accessible via HTTP. These logs contain PHP error messages with full filesystem paths, database query details, plugin names, and sometimes partial credentials.",
+    "risk": "CRITICAL",
+    "impact": "Error logs reveal: absolute filesystem paths (enabling path traversal attacks), database error details (enabling SQL injection refinement), plugin names/versions (enabling targeted CVE exploitation), and internal application state.",
+    "remediation": "Block web access to log files immediately:\n\n1. Quick block via .htaccess in wp-content/:\n   <Files debug.log>\n       Order allow,deny\n       Deny from all\n   </Files>\n\n2. Nginx — block log file access:\n   location ~* /(debug\\.log|error_log|.*\\.log)$ {\n       deny all;\n       return 404;\n   }\n\n3. Disable debug logging on production:\n   # wp-config.php:\n   define('WP_DEBUG', false);\n   define('WP_DEBUG_LOG', false);\n\n4. Delete existing debug.log:\n   rm /var/www/html/wp-content/debug.log\n\n5. If you need logs, redirect PHP errors to a non-web-accessible path:\n   # php.ini:\n   error_log = /var/log/php_errors.log\n   # (not inside web root)",
+    "references": [
+      "https://wordpress.org/documentation/article/debugging-in-wordpress/",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/"
+    ]
+  },
+  "SEC-WPPLUGIN-001": {
+    "title": "Known Vulnerable WordPress Plugin Version Detected",
+    "description": "A WordPress plugin with a known CVE or security vulnerability has been identified via its readme.txt version number. This includes plugins with critical unpatched vulnerabilities in the currently installed version.",
+    "risk": "CRITICAL",
+    "impact": "Vulnerable plugins are the #1 cause of WordPress compromises. A single unpatched plugin with a publicly known exploit allows an attacker to achieve Remote Code Execution, SQL injection, authentication bypass, or privilege escalation — often with fully automated exploits available.",
+    "remediation": "UPDATE ALL PLUGINS IMMEDIATELY:\n\n1. Update via WordPress Dashboard:\n   Dashboard > Plugins > Available Updates > Update All\n\n2. Update via WP-CLI:\n   wp plugin update --all\n\n3. Check for known vulnerabilities:\n   https://wpscan.com/plugins — search your plugin name\n   https://patchstack.com/database — comprehensive WP vuln database\n\n4. For plugins with no available fix:\n   - Deactivate and delete the plugin\n   - Find an alternative maintained plugin\n\n5. Enable auto-updates for security releases:\n   # wp-config.php:\n   add_filter('auto_update_plugin', '__return_true');\n\n6. Subscribe to WPScan vulnerability notifications:\n   https://wpscan.com/api — free tier includes vulnerability alerts\n\n7. Consider Patchstack or Wordfence for virtual patching — blocks exploits even before you update",
+    "references": [
+      "https://wpscan.com/",
+      "https://patchstack.com/database",
+      "https://cheatsheetseries.owasp.org/cheatsheets/WordPress_Security_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-WPPLUGIN-002": {
+    "title": "WordPress Plugin Directory Listing Enabled",
+    "description": "Directory listing is enabled on the WordPress plugins directory (/wp-content/plugins/), allowing attackers to enumerate all installed plugins and their exact versions without guessing.",
+    "risk": "MEDIUM",
+    "impact": "Directory listing reveals the complete list of installed plugins with version numbers, enabling targeted attacks against known-vulnerable versions. Without listing, attackers must probe plugin paths individually — a significant additional hurdle.",
+    "remediation": "Disable directory listing:\n\nApache — global disable:\n# httpd.conf or .htaccess:\nOptions -Indexes\n\n# Or in VirtualHost:\n<Directory /var/www/html>\n    Options -Indexes\n</Directory>\n\nNginx — directory listing is off by default.\nVerify nginx.conf does NOT contain: autoindex on;\n\nAdd an empty index.html to plugin directory:\ntouch /var/www/html/wp-content/plugins/index.html\ntouch /var/www/html/wp-content/themes/index.html\ntouch /var/www/html/wp-content/uploads/index.html\n(WordPress core does this by default, but custom installs may not)",
+    "references": [
+      "https://wordpress.org/documentation/article/hardening-wordpress/#directory-and-file-permissions"
+    ]
+  },
+  "SEC-WPUSR-001": {
+    "title": "WordPress REST API Exposes User List",
+    "description": "The WordPress REST API endpoint /wp-json/wp/v2/users returns a list of all user accounts including usernames, display names, and user IDs without authentication. This directly provides attacker-ready username lists for brute force attacks.",
+    "risk": "HIGH",
+    "impact": "All WordPress usernames are exposed in plain JSON. Attackers combine this with brute force or credential stuffing tools to systematically attempt to compromise accounts. Admin usernames are the most valuable — if 'admin' is a username, attacks focus there first.",
+    "remediation": "Disable public user listing via REST API:\n\n1. Add to functions.php or a custom plugin:\n// Disable REST API user enumeration\nadd_filter('rest_endpoints', function($endpoints) {\n    if (isset($endpoints['/wp/v2/users'])) {\n        unset($endpoints['/wp/v2/users']);\n    }\n    if (isset($endpoints['/wp/v2/users/(?P<id>[\\d]+)'])) {\n        unset($endpoints['/wp/v2/users/(?P<id>[\\d]+)']);\n    }\n    return $endpoints;\n});\n\n// Require authentication for all REST API access\nadd_filter('rest_authentication_errors', function($result) {\n    if (!is_user_logged_in()) {\n        return new WP_Error('rest_not_logged_in', 'Authentication required.', ['status' => 401]);\n    }\n    return $result;\n});\n\n2. Use a plugin: 'Disable REST API' or 'WP Hide & Security Enhancer'\n\n3. Additionally rename the admin username:\n   Dashboard > Users > edit admin user > change username (requires plugin or SQL)\n   UPDATE wp_users SET user_login = 'newname' WHERE user_login = 'admin';",
+    "references": [
+      "https://developer.wordpress.org/rest-api/frequently-asked-questions/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/WordPress_Security_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-WPUSR-002": {
+    "title": "WordPress Username Enumeration via Author Archives",
+    "description": "WordPress author archive URLs (/?author=1, /?author=2) redirect to URLs containing the username (e.g., /author/admin/). An attacker can iterate author IDs to enumerate all usernames on the site.",
+    "risk": "HIGH",
+    "impact": "All WordPress usernames are enumerable via sequential HTTP requests requiring no authentication, providing attacker-ready username lists for credential attacks.",
+    "remediation": "Block author enumeration redirects:\n\n1. Add to functions.php:\n// Block author enumeration\nadd_action('init', function() {\n    if (!is_admin()) {\n        if (isset($_GET['author'])) {\n            wp_redirect(home_url(), 301);\n            exit;\n        }\n    }\n});\n\n// Or return 404:\nadd_action('template_redirect', function() {\n    if (is_author()) {\n        global $wp_query;\n        $wp_query->set_404();\n        status_header(404);\n    }\n});\n\n2. Block via Nginx:\nlocation ~ \\?author= {\n    return 403;\n}\n\n3. Block via .htaccess (Apache):\nRewriteEngine On\nRewriteCond %{QUERY_STRING} ^author=\\d\nRewriteRule ^ - [F]\n\n4. Also block /author/ archive pages if not needed for your site:\n   Dashboard > Yoast SEO > Search Appearance > Archives > disable author archives",
+    "references": [
+      "https://wordpress.org/documentation/article/hardening-wordpress/"
+    ]
+  },
+  "SEC-WPUSR-003": {
+    "title": "WordPress Login Error Messages Reveal Valid Usernames",
+    "description": "The WordPress login page returns different error messages for invalid usernames ('Invalid username') versus invalid passwords ('Incorrect password'), allowing attackers to confirm which usernames exist on the system.",
+    "risk": "MEDIUM",
+    "impact": "Attackers can use binary search to identify all valid usernames with minimal requests, then focus credential attacks exclusively on confirmed accounts — dramatically improving attack efficiency.",
+    "remediation": "Replace WordPress login error messages with a generic message:\n\n1. Add to functions.php:\n// Generic login error — do not disclose username/password validity\nadd_filter('login_errors', function() {\n    return 'Invalid credentials. Please try again.';\n});\n\n2. This replaces both 'Invalid username' and 'Incorrect password' with the same message\n\n3. Also disable login hints from XML-RPC by disabling XML-RPC entirely (see SEC-XMLRPC-001)\n\n4. Enable two-factor authentication to make enumerated username/passwords useless without the second factor:\n   Wordfence > Login Security > Two-Factor Authentication\n   Or: WP 2FA plugin (free, TOTP-based)",
+    "references": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-and-error-messages"
+    ]
+  },
+  "SEC-WPVER-001": {
+    "title": "WordPress Version Is End-of-Life or Critically Outdated",
+    "description": "The installed WordPress version is end-of-life or significantly outdated. End-of-life WordPress versions no longer receive security patches, leaving the site permanently vulnerable to all publicly known exploits for that version.",
+    "risk": "CRITICAL",
+    "impact": "EOL WordPress versions have numerous known, unpatched CVEs with public exploit code. Automated scanners continuously probe for outdated WordPress installs and will exploit them without manual attacker involvement.",
+    "remediation": "UPDATE WORDPRESS IMMEDIATELY:\n\n1. Via WordPress Dashboard (recommended):\n   Dashboard > Updates > Update to WordPress X.X.X\n   BACK UP FIRST: Dashboard > Tools > Export, or use UpdraftPlus\n\n2. Via WP-CLI:\n   wp db export backup_$(date +%Y%m%d).sql  # backup database first\n   wp core update\n   wp core update-db\n\n3. Before updating in production, test on staging:\n   Theme/plugin compatibility should be verified first\n\n4. Enable auto-updates for minor security releases:\n   # wp-config.php:\n   define('WP_AUTO_UPDATE_CORE', 'minor'); // Updates 6.x.y automatically\n   // Or for all updates:\n   define('WP_AUTO_UPDATE_CORE', true);\n\n5. Current WordPress version: https://wordpress.org/download/releases/\n   Check EOL status: https://endoflife.date/wordpress",
+    "references": [
+      "https://wordpress.org/about/security/",
+      "https://endoflife.date/wordpress"
+    ]
+  },
+  "SEC-WPVER-002": {
+    "title": "WordPress Version Publicly Disclosed",
+    "description": "The WordPress version number is visible in the generator meta tag, feed links, readme.html, or wp-includes/version.php HTTP response. This aids targeted exploitation by allowing attackers to immediately identify applicable CVEs.",
+    "risk": "MEDIUM",
+    "impact": "Version disclosure alone is not exploitable but significantly accelerates targeted attacks — attackers can query vulnerability databases for the exact version and skip the probing phase.",
+    "remediation": "Remove version metadata from all public endpoints:\n\n1. functions.php — remove generator tag and version from scripts/styles:\n// Remove WordPress version from all public output\nremove_action('wp_head', 'wp_generator');\nadd_filter('the_generator', '__return_empty_string');\n\n// Remove version from script/style URLs:\nadd_filter('style_loader_src', function($src) {\n    return remove_query_arg('ver', $src);\n});\nadd_filter('script_loader_src', function($src) {\n    return remove_query_arg('ver', $src);\n});\n\n2. Block readme.html:\n   # .htaccess:\n   <Files readme.html>\n       Order allow,deny\n       Deny from all\n   </Files>\n   # Or simply delete it:\n   rm /var/www/html/readme.html\n\n3. Block wp-includes/version.php:\n   # .htaccess — already blocked by default WP rules:\n   # Ensure this exists in .htaccess:\n   <IfModule mod_rewrite.c>\n     RewriteRule ^wp-includes/[^/]+\\.php$ - [F,L]\n   </IfModule>\n\n4. Use a security plugin: Wordfence, WP Hide & Security Enhancer",
+    "references": [
+      "https://wordpress.org/documentation/article/hardening-wordpress/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/WordPress_Security_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-XMLRPC-001": {
+    "title": "XML-RPC Interface Active and Responding",
+    "description": "WordPress's xmlrpc.php endpoint is active and responding to method calls. XML-RPC is a legacy remote publishing API that is widely exploited for brute force attacks (bypassing login rate limiting), SSRF, and DDoS amplification.",
+    "risk": "HIGH",
+    "impact": "XML-RPC bypasses login rate limiting plugins — an attacker can attempt thousands of credentials in a single HTTP request using system.multicall. It also enables SSRF via pingback.ping and can be used to amplify DDoS attacks against third-party targets.",
+    "remediation": "Disable XML-RPC entirely (recommended for most sites):\n\n1. Via .htaccess (Apache):\n   <Files xmlrpc.php>\n       Order Deny,Allow\n       Deny from all\n   </Files>\n\n2. Via Nginx:\n   location = /xmlrpc.php {\n       deny all;\n       return 404;\n   }\n\n3. Via functions.php (disables programmatically):\n   add_filter('xmlrpc_enabled', '__return_false');\n\n4. Via plugin: 'Disable XML-RPC' (lightweight, single purpose)\n\n5. If XML-RPC is required (e.g., Jetpack, mobile apps):\n   - Restrict to known IPs only via firewall/htaccess\n   - Block system.multicall specifically:\n     add_filter('xmlrpc_methods', function($methods) {\n         unset($methods['system.multicall']);\n         unset($methods['pingback.ping']);\n         return $methods;\n     });\n\nVerify disabled:\ncurl -d '<methodCall><methodName>system.listMethods</methodName></methodCall>' https://yourdomain.com/xmlrpc.php\nShould return 403 or 404",
+    "references": [
+      "https://owasp.org/www-community/attacks/XML_External_Entity_(XXE)_Processing",
+      "https://wordpress.org/documentation/article/hardening-wordpress/#xml-rpc"
+    ]
+  },
+  "SEC-XMLRPC-002": {
+    "title": "XML-RPC system.multicall Enabled — Brute Force Amplification",
+    "description": "The XML-RPC system.multicall method is available and allows batching hundreds of method calls in a single HTTP request. This is actively exploited to perform thousands of login attempts while bypassing rate-limiting plugins that only count HTTP requests.",
+    "risk": "CRITICAL",
+    "impact": "CRITICAL: An attacker can test 500+ username/password combinations in a single HTTP request, completely bypassing lockout and rate-limiting controls. This makes brute force attacks against WordPress effectively unlimited even with login protection plugins.",
+    "remediation": "Block system.multicall and disable XML-RPC:\n\n1. Quickest fix — disable entire XML-RPC:\n   # .htaccess:\n   <Files xmlrpc.php>\n       Order Deny,Allow\n       Deny from all\n   </Files>\n\n2. If XML-RPC must remain active, block multicall:\n   add_filter('xmlrpc_methods', function($methods) {\n       unset($methods['system.multicall']);\n       unset($methods['system.listMethods']);\n       unset($methods['system.getCapabilities']);\n       return $methods;\n   });\n\n3. Enable Wordfence — it blocks XML-RPC brute force specifically:\n   Wordfence > Firewall > Brute Force Protection\n   Enable: 'Prevent WordPress from being discoverable via XML-RPC'\n\n4. Rate limit XML-RPC at the web server level:\n   # Nginx:\n   location = /xmlrpc.php {\n       limit_req zone=login burst=2 nodelay;\n       limit_req_status 429;\n   }",
+    "references": [
+      "https://owasp.org/www-community/controls/Blocking_Brute_Force_Attacks",
+      "https://wordpress.org/documentation/article/hardening-wordpress/#xml-rpc"
+    ]
+  },
+  "SEC-XMLRPC-003": {
+    "title": "XML-RPC pingback.ping Available — SSRF and DDoS Amplification Risk",
+    "description": "The pingback.ping XML-RPC method is active. This allows any external party to use your server as a proxy to send HTTP requests to arbitrary third-party URLs (Server-Side Request Forgery) and can be used to DDoS third-party targets using your server's bandwidth.",
+    "risk": "HIGH",
+    "impact": "Your server can be weaponized to: scan internal network hosts (SSRF), probe private cloud metadata endpoints (169.254.169.254), and participate in large-scale DDoS attacks against third-party targets — potentially leading to your server's IP being blocklisted and legal liability.",
+    "remediation": "Disable pingback method while optionally keeping other XML-RPC methods:\n\n// functions.php:\nadd_filter('xmlrpc_methods', function($methods) {\n    unset($methods['pingback.ping']);\n    unset($methods['pingback.extensions.getPingbacks']);\n    return $methods;\n});\n\n// Or disable all of XML-RPC:\nadd_filter('xmlrpc_enabled', '__return_false');\n\nNginx — block entirely:\nlocation = /xmlrpc.php {\n    deny all;\n    return 404;\n}\n\nAlso block pingbacks at the WordPress level:\n// Remove wp_head pingback link:\nremove_action('wp_head', 'rsd_link');\n\nWordPress Settings > Discussion > uncheck 'Allow link notifications from other blogs (pingbacks and trackbacks)'",
+    "references": [
+      "https://owasp.org/www-community/attacks/Server_Side_Request_Forgery",
+      "https://wordpress.org/documentation/article/hardening-wordpress/#xml-rpc"
+    ]
   }
 }

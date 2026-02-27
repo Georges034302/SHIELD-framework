@@ -40,14 +40,14 @@ echo "Input: $INPUT_DIR"
 echo "Output: $OUTPUT_FILE"
 echo ""
 
-# Function to count issues by severity
+# Function to count issues by severity (excludes PASS, SKIP, INFO)
 count_by_severity() {
     local severity="$1"
     local count=0
     
     for json_file in "$INPUT_DIR"/step*/*.json; do
         if [ -f "$json_file" ]; then
-            local file_count=$(jq -r "[.checks[] | select(.severity == \"$severity\" and .status != \"PASS\")] | length" "$json_file" 2>/dev/null || echo "0")
+            local file_count=$(jq -r "[.checks[] | select(.severity == \"$severity\" and (.status == \"FAIL\" or .status == \"WARN\"))] | length" "$json_file" 2>/dev/null || echo "0")
             count=$((count + file_count))
         fi
     done
@@ -66,6 +66,16 @@ count_by_status() {
         fi
     done
     echo "$count"
+}
+
+# Detect if target is WordPress
+is_wordpress() {
+    if [ -f "$INPUT_DIR/step1/wp_version.json" ]; then
+        local wp_status
+        wp_status=$(jq -r '.checks[0].status // "SKIP"' "$INPUT_DIR/step1/wp_version.json" 2>/dev/null || echo "SKIP")
+        [[ "$wp_status" != "SKIP" ]] && return 0
+    fi
+    return 1
 }
 
 # Compute letter grade A-F from issue counts
@@ -98,7 +108,11 @@ MEDIUM_COUNT=$(count_by_severity "MEDIUM")
 LOW_COUNT=$(count_by_severity "LOW")
 TOTAL_ISSUES=$((CRITICAL_COUNT + HIGH_COUNT + MEDIUM_COUNT + LOW_COUNT))
 PASS_COUNT=$(count_by_status "PASS")
+SKIP_COUNT=$(count_by_status "SKIP")
 INFO_COUNT=$(count_by_status "INFO")
+FAIL_COUNT=$(count_by_status "FAIL")
+WARN_COUNT=$(count_by_status "WARN")
+TOTAL_CHECKS=$((PASS_COUNT + SKIP_COUNT + INFO_COUNT + FAIL_COUNT + WARN_COUNT))
 GRADE=$(compute_grade "$CRITICAL_COUNT" "$HIGH_COUNT" "$MEDIUM_COUNT")
 
 # Generate report
@@ -128,7 +142,9 @@ This report presents the findings from a comprehensive security assessment condu
 | 🟡 Medium | $MEDIUM_COUNT |
 | 🔵 Low | $LOW_COUNT |
 | ✅ Passed | $PASS_COUNT |
-| **Total Issues** | **$TOTAL_ISSUES** |
+| ⏭ Skipped (N/A) | $SKIP_COUNT |
+| **Total Checks Run** | **$TOTAL_CHECKS** |
+| **Total Issues Found** | **$TOTAL_ISSUES** |
 
 ### Risk Assessment
 
@@ -210,32 +226,75 @@ for step_num in {1..6}; do
 
 EOF
     
-    # Process each JSON file in the step
+    # Process each JSON file in the step — show only FAIL/WARN rows
+    STEP_HAS_ISSUES=false
+    STEP_BLOCK=""
     for json_file in "$STEP_DIR"/*.json; do
         if [ ! -f "$json_file" ]; then
             continue
         fi
         
         CHECK_NAME=$(basename "$json_file" .json)
+        ISSUE_ROWS=$(jq -r '.checks[] | select(.status == "FAIL" or .status == "WARN") | "| \(.name) | \(.status) | \(.severity) | \(.found) |"' "$json_file" 2>/dev/null || true)
         
-        # Get failed/warned checks
-        ALL_CHECKS=$(jq -rc '.checks[]' "$json_file" 2>/dev/null)
-        FAILED_CHECKS=$(echo "$ALL_CHECKS" | jq -r 'select(.status == "FAIL" or .status == "WARN")' 2>/dev/null)
-        
-        if [ -n "$ALL_CHECKS" ]; then
-            SECTION_TITLE=$(echo "$CHECK_NAME" | tr '_' ' ' | sed 's/\b\(a-z\)/\u\1/g')
-            cat >> "$OUTPUT_FILE" <<EOF
-
+        if [ -n "$ISSUE_ROWS" ]; then
+            STEP_HAS_ISSUES=true
+            STEP_BLOCK="$STEP_BLOCK
 #### ${CHECK_NAME//_/ }
 
 | Check | Status | Severity | Finding |
 |-------|--------|----------|---------|
-EOF
-            echo "$ALL_CHECKS" | jq -r '"| \(.name) | \(.status) | \(.severity) | \(.found) |"' >> "$OUTPUT_FILE"
-            echo "" >> "$OUTPUT_FILE"
+$ISSUE_ROWS
+"
         fi
     done
+    
+    if [ "$STEP_HAS_ISSUES" = true ]; then
+        echo "$STEP_BLOCK" >> "$OUTPUT_FILE"
+    else
+        echo "_No issues found in this step._" >> "$OUTPUT_FILE"
+        echo "" >> "$OUTPUT_FILE"
+    fi
 done
+
+# WordPress-specific section
+if is_wordpress; then
+    WP_ISSUES=""
+    for json_file in "$INPUT_DIR"/step1/wp_version.json \
+                     "$INPUT_DIR"/step3/wp_users.json \
+                     "$INPUT_DIR"/step4/wp_plugins.json \
+                     "$INPUT_DIR"/step4/xmlrpc.json \
+                     "$INPUT_DIR"/step4/wp_debug.json \
+                     "$INPUT_DIR"/step4/wp_config_exposure.json; do
+        if [ -f "$json_file" ]; then
+            rows=$(jq -r '.checks[] | select(.status == "FAIL" or .status == "WARN") | "| \(.name) | \(.status) | \(.severity) | \(.found) |"' "$json_file" 2>/dev/null || true)
+            [ -n "$rows" ] && WP_ISSUES="$WP_ISSUES
+$(basename "$json_file" .json | tr '_' ' '):
+$rows"
+        fi
+    done
+    
+    cat >> "$OUTPUT_FILE" <<EOF
+
+---
+
+## WordPress-Specific Findings
+
+WordPress was detected on this target. The following WP-specific checks were performed:
+
+| Check | Status | Severity | Finding |
+|-------|--------|----------|---------|
+EOF
+    for json_file in "$INPUT_DIR"/step1/wp_version.json \
+                     "$INPUT_DIR"/step3/wp_users.json \
+                     "$INPUT_DIR"/step4/wp_plugins.json \
+                     "$INPUT_DIR"/step4/xmlrpc.json \
+                     "$INPUT_DIR"/step4/wp_debug.json \
+                     "$INPUT_DIR"/step4/wp_config_exposure.json; do
+        [ -f "$json_file" ] && jq -r '.checks[] | select(.status != "SKIP") | "| \(.name) | \(.status) | \(.severity) | \(.found) |"' "$json_file" 2>/dev/null >> "$OUTPUT_FILE" || true
+    done
+    echo "" >> "$OUTPUT_FILE"
+fi
 
 cat >> "$OUTPUT_FILE" <<EOF
 
@@ -323,8 +382,25 @@ This assessment identified **$TOTAL_ISSUES** security issues across multiple cat
 
 ---
 
+## Out of Scope
+
+The following security concerns are **outside the scope** of this black-box assessment and require direct server/infrastructure access to evaluate:
+
+| Area | Why Out of Scope | Recommended Tool |
+|------|-----------------|------------------|
+| Server-side file integrity (webshell scan on disk) | Requires SSH/filesystem access | WP-CLI verify-checksums, Wordfence, Maldet |
+| Server privilege escalation paths | Requires OS-level access | Linux Exploit Suggester, Lynis |
+| Database content inspection | Requires DB credentials | wp-cli, MySQL direct access |
+| Internal network / SSRF reachability | Requires server execution context | Manual pentest |
+| Memory / process inspection | Requires server access | sysdig, auditd |
+
+For a complete assessment including the above areas, a **professional penetration test with server access** is recommended.
+
+---
+
 **Report Generated:** $TIMESTAMP  
 **Framework:** SHIELD v1.0.0  
+**Total Checks:** $TOTAL_CHECKS | **Issues Found:** $TOTAL_ISSUES | **Grade:** $GRADE  
 **Documentation:** https://github.com/Georges034302/SHIELD-framework
 
 EOF
