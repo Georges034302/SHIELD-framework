@@ -26,8 +26,8 @@ No server access required. No exploitation. No destructive testing.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| Step                                                     | Focus |
-|----------------------------------------------------------|-------|
+| Step                       | Focus |
+|----------------------------|-------|
 | **1 — Scope** | Resolves target, detects WordPress, establishes baseline |
 | **2 — External Hardening** | HTTP security headers, TLS/cipher strength, certificate validity, HTTPS enforcement, server version disclosure |
 | **3 — Auth & Session** | Login rate limiting, brute force lockout, CAPTCHA, cookie flags, session fixation/rotation, timeout, username enumeration |
