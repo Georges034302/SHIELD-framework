@@ -55,8 +55,12 @@ count_by_severity() {
     echo "$count"
 }
 
-# Get target URL from first available report
-TARGET=$(jq -r '.target' "$(find "$INPUT_DIR" -name '*.json' -type f | head -n1)" 2>/dev/null || echo "Unknown")
+# Get target URL - prefer step1/scope.json, fall back to first sorted JSON
+if [[ -f "$INPUT_DIR/step1/scope.json" ]]; then
+    TARGET=$(jq -r '.target' "$INPUT_DIR/step1/scope.json" 2>/dev/null || echo "Unknown")
+else
+    TARGET=$(jq -r '.target' "$(find "$INPUT_DIR" -name '*.json' -type f | sort | head -n1)" 2>/dev/null || echo "Unknown")
+fi
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 
 # Count issues

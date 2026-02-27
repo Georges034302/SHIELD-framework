@@ -495,5 +495,208 @@
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
     ]
+  },
+  "SEC-SESS-001": {
+    "title": "Session Cookie Assigned Before Authentication",
+    "description": "The application assigns a session cookie to unauthenticated requests. If the session ID is not regenerated after login, an attacker who plants a known session ID can hijack the authenticated session (session fixation).",
+    "risk": "HIGH",
+    "impact": "An attacker can pre-set a known session ID in the victim's browser, then hijack the authenticated session after the victim logs in.",
+    "remediation": "Regenerate session ID immediately after successful authentication:\n\nPHP:\nsession_regenerate_id(true); // Call after successful login\n\nExpress/Node.js (express-session):\nreq.session.regenerate(function(err) {\n  // store new user info in req.session\n});\n\nDjango:\nfrom django.contrib.auth import login\nlogin(request, user) // Django auto-regenerates session on login\n\nSpring Security (auto-handled):\nhttp.sessionManagement()\n    .sessionFixation().migrateSession(); // default behavior\n\nAlso ensure:\n1. Session cookies have Secure, HttpOnly, and SameSite=Strict/Lax\n2. Invalidate old session on logout\n3. Set short session timeouts\n4. Bind sessions to IP/User-Agent where practical",
+    "references": [
+      "https://owasp.org/www-community/attacks/Session_fixation",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-SESS-002": {
+    "title": "Session Fixation with Missing Cookie Security Attributes",
+    "description": "Pre-authentication session cookies lack Secure, HttpOnly, and/or SameSite attributes, compounding the session fixation risk.",
+    "risk": "HIGH",
+    "impact": "Combination of session fixation vectors with insecure cookie attributes significantly increases hijacking risk.",
+    "remediation": "Address both session fixation and cookie security:\n\n1. Regenerate session ID on login (see SEC-SESS-001)\n\n2. Set all cookie security attributes:\nSet-Cookie: sessionid=<value>; Secure; HttpOnly; SameSite=Strict; Path=/\n\nPHP:\nsession_set_cookie_params([\n    'secure' => true,\n    'httponly' => true,\n    'samesite' => 'Strict'\n]);\n\nExpress:\napp.use(session({\n    secret: 'strong-secret',\n    cookie: {\n        secure: true,\n        httpOnly: true,\n        sameSite: 'strict',\n        maxAge: 3600000\n    },\n    resave: false,\n    saveUninitialized: false\n}));\n\n3. Never accept session IDs from URL parameters\n4. Implement CSRF protection alongside session management",
+    "references": [
+      "https://owasp.org/www-community/attacks/Session_fixation",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-OCSP-001": {
+    "title": "OCSP Stapling Not Enabled",
+    "description": "The server does not staple an OCSP response to the TLS handshake, requiring clients to perform separate OCSP lookups to validate certificate revocation status. This reduces performance and privacy.",
+    "risk": "LOW",
+    "impact": "Without OCSP stapling, clients must query the CA's OCSP server directly, leaking browsing activity to the CA and adding latency. In OCSP soft-fail scenarios, revoked certificates may still be trusted.",
+    "remediation": "Enable OCSP stapling on your web server:\n\nNginx:\nssl_stapling on;\nssl_stapling_verify on;\nresolver 8.8.8.8 8.8.4.4 valid=300s;\nresolver_timeout 5s;\n# Include full certificate chain:\nssl_certificate /path/to/fullchain.pem;\n\nApache:\nSSLUseStapling on\nSSLStaplingCache shmcb:/var/run/ocsp(128000)\nSSLStaplingStapleMaxAge 3600\n\nHAProxy:\n# Use certbot/acme.sh for automatic OCSP stapling\n\nVerify with:\necho '' | openssl s_client -connect yourdomain.com:443 -status 2>/dev/null | grep 'OCSP Response Status'\n\nRequirements:\n- Full certificate chain (not just leaf cert)\n- Network access from server to CA OCSP responder\n- Valid stapling cache configuration",
+    "references": [
+      "https://letsencrypt.org/docs/integration-guide/#implement-ocsp-stapling",
+      "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_stapling"
+    ]
+  },
+  "SEC-OCSP-002": {
+    "title": "Certificate Revoked (OCSP Response)",
+    "description": "The OCSP response indicates the server's certificate has been revoked. Clients will receive security warnings or connection failures.",
+    "risk": "CRITICAL",
+    "impact": "Revoked certificates should not be trusted. Browsers may block access or show severe warnings, breaking the site for all users.",
+    "remediation": "Immediately replace the revoked certificate:\n\n1. Obtain a new certificate from your CA or Let's Encrypt:\n   certbot renew --force-renewal\n\n2. Deploy the new certificate:\n   - Update ssl_certificate and ssl_certificate_key in Nginx/Apache\n   - Reload the web server: nginx -s reload / systemctl reload apache2\n\n3. Verify the new certificate:\n   echo '' | openssl s_client -connect yourdomain.com:443 2>/dev/null | openssl x509 -noout -dates\n\n4. Investigate why the certificate was revoked:\n   - Private key compromise?\n   - CA-initiated revocation?\n   - Misissuance?\n\n5. If private key was compromised, rotate all secrets and audit access logs",
+    "references": [
+      "https://www.ssl.com/faqs/why-do-ssl-tls-certificates-need-to-be-revoked/",
+      "https://letsencrypt.org/docs/revoking/"
+    ]
+  },
+  "SEC-DNS-001": {
+    "title": "Missing DNS Security Records",
+    "description": "One or more DNS security records (DNSSEC, SPF, DMARC, CAA) are missing or not properly configured, leaving the domain vulnerable to spoofing, impersonation, and unauthorized certificate issuance.",
+    "risk": "MEDIUM",
+    "impact": "Missing SPF/DMARC enables email spoofing from your domain. Missing CAA allows any CA to issue certificates. Missing DNSSEC enables DNS cache poisoning.",
+    "remediation": "Implement all DNS security records:\n\n1. SPF record (TXT at root domain):\n   v=spf1 include:_spf.google.com ~all\n   (replace with your actual mail provider)\n\n2. DMARC record (TXT at _dmarc.yourdomain.com):\n   v=DMARC1; p=reject; rua=mailto:dmarc@yourdomain.com; ruf=mailto:dmarc@yourdomain.com; fo=1\n   Start with p=none, then p=quarantine, then p=reject\n\n3. CAA record:\n   0 issue \"letsencrypt.org\"\n   0 issuewild \";\"\n   0 iodef \"mailto:security@yourdomain.com\"\n\n4. DNSSEC: Enable via your DNS provider's control panel (varies by provider)\n   - Cloudflare: Settings > DNSSEC (one-click)\n   - Route53: Enable DNSSEC signing in hosted zone settings\n\nVerify with:\n   dig TXT yourdomain.com (SPF)\n   dig TXT _dmarc.yourdomain.com (DMARC)\n   dig CAA yourdomain.com\n   dig DNSKEY yourdomain.com (DNSSEC)",
+    "references": [
+      "https://www.cloudflare.com/learning/dns/dns-security/",
+      "https://dmarcly.com/blog/how-to-implement-dmarc-dkim-spf-to-stop-email-spoofing-phishing",
+      "https://letsencrypt.org/docs/caa/"
+    ]
+  },
+  "SEC-DNS-002": {
+    "title": "Multiple Critical DNS Security Records Missing",
+    "description": "Three or more DNS security records are absent, creating a broadly unsecured domain posture with multiple attack vectors.",
+    "risk": "HIGH",
+    "impact": "Comprehensive DNS security gaps expose the domain to DNS poisoning, email spoofing, certificate impersonation, and man-in-the-middle attacks.",
+    "remediation": "Treat DNS security as a priority remediation item:\n\nPriority order:\n1. DMARC p=reject (prevents email spoofing immediately)\n2. SPF (defines authorized mail senders)\n3. CAA (restricts certificate issuance)\n4. DNSSEC (prevents DNS cache poisoning)\n\nSee SEC-DNS-001 for detailed implementation steps.\n\nAdditional hardening:\n- DKIM: Generate keys for each mail service and publish DNS TXT records\n- MTA-STS: Enforce TLS for inbound email\n- TLSRPT: Monitor TLS failures\n- Review all DNS records for dangling CNAMEs pointing to decommissioned services",
+    "references": [
+      "https://www.cloudflare.com/learning/dns/dns-security/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/DNS_Zone_Transfer_Cheat_Sheet.html",
+      "https://www.ncsc.gov.uk/collection/email-security-and-anti-spoofing"
+    ]
+  },
+  "SEC-GRAPHQL-001": {
+    "title": "GraphQL Introspection Enabled in Production",
+    "description": "GraphQL introspection is enabled, allowing any user to query the full schema including all types, queries, mutations, and their arguments. This exposes the full API surface for reconnaissance.",
+    "risk": "HIGH",
+    "impact": "Attackers can enumerate the complete API schema to discover hidden endpoints, sensitive data types, and attack vectors without any authorization.",
+    "remediation": "Disable GraphQL introspection in production environments:\n\nApollo Server:\nconst server = new ApolloServer({\n  typeDefs,\n  resolvers,\n  introspection: process.env.NODE_ENV !== 'production',\n});\n\nGraphQL.js / Express-GraphQL:\napp.use('/graphql', graphqlHTTP({\n  schema,\n  graphiql: process.env.NODE_ENV !== 'production',\n  // Add validation rule to block introspection:\n  validationRules: [\n    process.env.NODE_ENV === 'production' && NoSchemaIntrospectionCustomRule\n  ].filter(Boolean)\n}));\n\nHasura:\nSet HASURA_GRAPHQL_ENABLE_CONSOLE=false in production\n\nAlso:\n1. Disable GraphQL Playground / GraphiQL IDE in production\n2. Implement depth limiting to prevent deeply nested queries\n3. Add query complexity analysis\n4. Require authentication for all GraphQL operations\n5. Use field-level authorization",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/12-API_Testing/",
+      "https://www.apollographql.com/blog/graphql/security/why-you-should-disable-graphql-introspection-in-production/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/GraphQL_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-GRAPHQL-002": {
+    "title": "GraphQL Introspection and Playground Both Exposed",
+    "description": "Both GraphQL introspection and the developer IDE (Playground/GraphiQL) are accessible in production, providing a complete interactive API exploration tool to attackers.",
+    "risk": "HIGH",
+    "impact": "Attackers have a fully interactive tool to explore, test, and attack the entire API without needing credentials or prior knowledge of the schema.",
+    "remediation": "Disable both introspection and the developer playground:\n\n1. Disable introspection (see SEC-GRAPHQL-001 for code examples)\n\n2. Disable Playground/GraphiQL:\nApollo Server:\nconst server = new ApolloServer({\n  plugins: process.env.NODE_ENV === 'production' ? [] [\n    ApolloServerPluginLandingPageDisabled()\n  ],\n});\n\nExpress-GraphQL:\ngraphqlHTTP({ graphiql: false });\n\n3. Implement rate limiting on the GraphQL endpoint\n4. Add authentication middleware before GraphQL handler\n5. Monitor for introspection queries in production logs\n6. Consider IP allowlisting for developer tooling endpoints",
+    "references": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/GraphQL_Cheat_Sheet.html",
+      "https://www.apollographql.com/docs/apollo-server/security/security/"
+    ]
+  },
+  "SEC-SUBDOMAIN-001": {
+    "title": "Sensitive Subdomains Exposed in Certificate Transparency Logs",
+    "description": "Certificate transparency logs reveal subdomains with names suggesting sensitive internal environments (staging, dev, admin, vpn, etc.) that may not be intended for public exposure.",
+    "risk": "MEDIUM",
+    "impact": "Attackers can use CT log data to discover staging/dev environments that may have weaker security, older software versions, or debugging features enabled.",
+    "remediation": "Audit and secure exposed sensitive subdomains:\n\n1. Review all CT log entries:\n   curl 'https://crt.sh/?q=%.yourdomain.com&output=json' | jq '.[].name_value' | sort -u\n\n2. For each sensitive subdomain:\n   - Is it still in use? If not, remove DNS record and certificate\n   - Does it require public access? If not, restrict to VPN/IP allowlist\n   - Does it have authentication? Verify login is required\n   - Is it running updated/patched software?\n\n3. Restrict access to internal environments:\nNginx:\nlocation / {\n    allow 10.0.0.0/8;     # Corporate network\n    allow 192.168.0.0/16;  # VPN\n    deny all;\n}\n\n4. Remove subdomains you don't need:\n   - Delete DNS A/CNAME records for decommissioned services\n   - Revoke certificates for retired subdomains\n\n5. Monitor CT logs continuously:\n   - Use services like certspotter.com or Facebook CT Monitor\n   - Set up alerts for new certificate issuance on your domain",
+    "references": [
+      "https://certificate.transparency.dev/",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server"
+    ]
+  },
+  "SEC-REDIRECT-001": {
+    "title": "Open Redirect Vulnerability",
+    "description": "The application accepts a URL redirect parameter and redirects users to an externally controlled URL without validation. This can be used in phishing and SSO bypass attacks.",
+    "risk": "HIGH",
+    "impact": "Attackers can craft URLs that appear to belong to your domain but redirect victims to malicious sites, bypassing browser warnings and facilitating credential theft.",
+    "remediation": "Validate all redirect destinations against an allowlist:\n\nOption 1: Allowlist-based (recommended):\nconst ALLOWED_REDIRECT_HOSTS = ['yourdomain.com', 'www.yourdomain.com'];\n\nfunction safeRedirect(res, url) {\n  try {\n    const parsed = new URL(url);\n    if (ALLOWED_REDIRECT_HOSTS.includes(parsed.hostname)) {\n      return res.redirect(url);\n    }\n  } catch {}\n  return res.redirect('/'); // Safe default\n}\n\nOption 2: Relative paths only:\nif (url.startsWith('/') && !url.startsWith('//')) {\n  res.redirect(url);\n} else {\n  res.redirect('/');\n}\n\nPHP:\nfunction safe_redirect($url) {\n    $allowed = ['yourdomain.com'];\n    $host = parse_url($url, PHP_URL_HOST);\n    if (in_array($host, $allowed) || strpos($url, '/') === 0) {\n        header('Location: ' . $url);\n    } else {\n        header('Location: /');\n    }\n}\n\nNever use:\n- header('Location: ' . $_GET['redirect'])  // VULNERABLE\n- res.redirect(req.query.return)             // VULNERABLE",
+    "references": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/04-Testing_for_Client-Side_URL_Redirect"
+    ]
+  },
+  "SEC-REDIRECT-002": {
+    "title": "Multiple Open Redirect Parameters",
+    "description": "Multiple redirect parameters accept unvalidated external URLs, indicating a systematic lack of redirect validation across the application.",
+    "risk": "HIGH",
+    "impact": "Multiple redirect vectors provide numerous phishing entry points and may indicate the vulnerability is embedded in shared redirect logic.",
+    "remediation": "Implement centralized redirect validation:\n\n1. Create a single redirect utility function (see SEC-REDIRECT-001)\n\n2. Audit all redirect usage:\n   grep -r 'redirect\\|Location\\|returnUrl\\|next\\|goto' src/ --include='*.js'\n\n3. Centralize redirect handling:\n// middleware/redirect.js\nmodule.exports = function validateRedirect(req, res, next) {\n  const redirectUrl = req.query.redirect || req.query.return || req.query.next;\n  if (redirectUrl) {\n    req.safeRedirect = validateUrl(redirectUrl) || '/';\n  }\n  next();\n};\n\n4. In Nginx, remove redirect parameters entirely where not needed:\nlocation / {\n    # Strip redirect parameters from requests\n    if ($arg_redirect) { return 301 /; }\n    if ($arg_return) { return 301 /; }\n}\n\n5. Add automated tests for all redirect parameters",
+    "references": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-SRI-001": {
+    "title": "External Resources Loaded Without Subresource Integrity",
+    "description": "External scripts or stylesheets are loaded without integrity attributes, meaning a compromised CDN or third-party host could serve malicious code that executes in users' browsers.",
+    "risk": "HIGH",
+    "impact": "If the CDN serving an external script is compromised, attackers can inject malicious JavaScript that executes on your site, leading to credential theft or data exfiltration.",
+    "remediation": "Add Subresource Integrity (SRI) to all external script and stylesheet tags:\n\n1. Generate SRI hash:\n   cat jquery.min.js | openssl dgst -sha384 -binary | openssl base64 -A\n   # Or use: https://www.srihash.org/\n\n2. Add to HTML tag:\n   <script src=\"https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js\"\n           integrity=\"sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK\"\n           crossorigin=\"anonymous\"></script>\n\n   <link rel=\"stylesheet\"\n         href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css\"\n         integrity=\"sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3\"\n         crossorigin=\"anonymous\">\n\n3. Automate SRI generation:\n   npm install --save-dev webpack-subresource-integrity\n\n4. Use Content-Security-Policy to enforce SRI:\n   Content-Security-Policy: require-sri-for script style;\n\n5. Self-host critical dependencies where possible to eliminate CDN risk",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.html#subresource-integrity"
+    ]
+  },
+  "SEC-SRI-002": {
+    "title": "Multiple External Resources Without Subresource Integrity",
+    "description": "Three or more external scripts or stylesheets lack SRI attributes, creating widespread supply chain risk across the page.",
+    "risk": "HIGH",
+    "impact": "A single CDN compromise could affect all unprotected external resources simultaneously, enabling large-scale malicious script injection.",
+    "remediation": "Implement an automated SRI generation pipeline:\n\n1. Use webpack-subresource-integrity for build-time SRI:\nnpm install --save-dev webpack-subresource-integrity\n\n// webpack.config.js\nconst { SubresourceIntegrityPlugin } = require('webpack-subresource-integrity');\nmodule.exports = {\n  plugins: [\n    new SubresourceIntegrityPlugin({ hashFuncNames: ['sha384'] })\n  ],\n  output: { crossOriginLoading: 'anonymous' }\n};\n\n2. For static HTML, use the SRI Hash Generator:\n   https://www.srihash.org/\n\n3. Add CSP require-sri-for directive:\n   Content-Security-Policy: require-sri-for script style;\n\n4. Implement a Content Security Policy audit:\n   - Use https://csp-evaluator.withgoogle.com/\n   - Add report-uri or report-to for CSP violations\n\n5. Evaluate self-hosting all critical JavaScript dependencies\n6. Pin CDN URLs to specific versions (never use @latest)",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/require-sri-for"
+    ]
+  },
+  "SEC-WAF-001": {
+    "title": "No WAF or CDN Detected",
+    "description": "The site does not appear to be protected by a Web Application Firewall (WAF) or CDN, meaning the origin server is directly exposed to the internet and potential attacks.",
+    "risk": "MEDIUM",
+    "impact": "Without a WAF, the origin is directly exposed to DDoS attacks, OWASP Top 10 exploits, bot traffic, and vulnerability scanning without any filtering layer.",
+    "remediation": "Deploy a WAF or CDN in front of the origin:\n\nOption 1: Cloudflare (recommended for most sites):\n1. Sign up at cloudflare.com\n2. Change nameservers to Cloudflare NS\n3. Enable WAF rules (Free tier includes basic rules)\n4. Enable DDoS protection\n5. Enable Bot Fight Mode\n\nOption 2: AWS WAF + CloudFront:\n1. Create CloudFront distribution pointing to origin\n2. Attach AWS WAF WebACL with managed rule groups:\n   - AWSManagedRulesCommonRuleSet\n   - AWSManagedRulesKnownBadInputsRuleSet\n   - AWSManagedRulesSQLiRuleSet\n\nOption 3: nginx + ModSecurity (self-hosted):\napt install libnginx-mod-security2\n# Enable OWASP Core Rule Set (CRS)\n\nMinimum WAF rules to enable:\n- SQLi protection\n- XSS protection\n- OWASP Top 10 rules\n- Rate limiting / IP reputation\n- Bot detection\n\nAfter deploying WAF:\n- Block direct origin IP access (only allow WAF IPs)\n- Enable HTTPS (full strict mode in Cloudflare)\n- Enable access logging for security monitoring",
+    "references": [
+      "https://owasp.org/www-project-web-application-firewall/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-3P-001": {
+    "title": "Third-Party Scripts Loaded Without Inventory Review",
+    "description": "The page loads external third-party scripts from multiple domains. Each third-party script represents a supply chain risk — a compromise of any script host could inject malicious code into your site.",
+    "risk": "LOW",
+    "impact": "Third-party scripts execute with full page permissions and can exfiltrate form data, session tokens, and user PII if the script provider is compromised.",
+    "remediation": "Inventory and control all third-party scripts:\n\n1. Audit all loaded scripts:\n   - Use browser DevTools > Network tab (filter by Script)\n   - Use tools like RetireJS or Snyk for known-vulnerable libraries\n\n2. Apply SRI to all external scripts (see SEC-SRI-001)\n\n3. Implement a strict Content Security Policy:\n   Content-Security-Policy: script-src 'self' https://trusted-cdn.com; default-src 'self';\n\n4. Use a Tag Manager with governance:\n   - Require approval for new tags\n   - Set up tag timeouts/expiry\n   - Monitor tag changes\n\n5. Sandbox third-party scripts in iframes:\n   <iframe sandbox=\"allow-scripts\" src=\"...third-party...\"></iframe>\n\n6. Self-host critical dependencies:\n   npm install && vendor the script locally\n\n7. Perform regular supply chain audits:\n   npm audit\n   npx retiring\n\n8. Monitor for unexpected new script additions using CSP reporting",
+    "references": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.html",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion"
+    ]
+  },
+  "SEC-3P-002": {
+    "title": "High-Risk Advertising or Tracking Scripts Detected",
+    "description": "The page loads advertising, analytics, or tracking scripts from high-risk third-party domains. These scripts typically have broad data collection capabilities and are frequent targets for malvertising attacks.",
+    "risk": "MEDIUM",
+    "impact": "Advertising networks have been used in malvertising campaigns to deliver malware. Tracking scripts can exfiltrate user data and session information. Any compromised ad/tracking provider can execute arbitrary JS on your site.",
+    "remediation": "Minimize and control advertising/tracking scripts:\n\n1. Evaluate necessity of each tracking/ad SDK:\n   - Is it actively used? When was ROI last measured?\n   - Can functionality be replaced with a privacy-respecting alternative?\n\n2. Load ad scripts asynchronously and in sandboxed contexts:\n   <script async src=\"...\" crossorigin=\"anonymous\"></script>\n\n3. Use a CSP to restrict script sources:\n   Content-Security-Policy: script-src 'self' https://googletagmanager.com; ...\n\n4. Apply SRI hashes where possible (some ad scripts change frequently)\n\n5. Implement Subresource Integrity checking:\n   npm install --save-dev csp-audit\n\n6. For GDPR/CCPA compliance:\n   - Implement consent management (don't load tracking before consent)\n   - Use server-side tagging to reduce client-side exposure\n   - Audit data sent to third parties\n\n7. Monitor for unauthorized new tracking domains:\n   Set up CSP report-to endpoint to detect policy violations",
+    "references": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.html",
+      "https://www.malwarebytes.com/malvertising",
+      "https://owasp.org/www-project-application-security-verification-standard/"
+    ]
+  },
+  "SEC-CLOUD-001": {
+    "title": "Cloud Storage Bucket Exists But Access Restricted",
+    "description": "A cloud storage bucket matching the domain name was discovered but returned a 403 Forbidden response. While not publicly readable, the bucket exists and may be misconfigured if access controls are ever changed.",
+    "risk": "MEDIUM",
+    "impact": "A 403 confirms bucket existence, allowing attackers to monitor for permission changes. Historical misconfiguration, insecure bucket policies, or ACL changes could expose sensitive data.",
+    "remediation": "Verify and harden cloud storage bucket configuration:\n\nAWS S3:\n1. Enable S3 Block Public Access at account level:\n   aws s3control put-public-access-block \\\n     --account-id 123456789 \\\n     --public-access-block-configuration 'BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true'\n\n2. Review bucket policy:\n   aws s3api get-bucket-policy --bucket your-bucket-name\n\n3. Enable S3 Access Logging:\n   aws s3api put-bucket-logging ...\n\n4. Enable versioning and MFA delete for sensitive buckets\n\nGCS:\n1. Remove allUsers and allAuthenticatedUsers from bucket IAM\n2. Enable uniform bucket-level access\n3. Enable Cloud Audit Logs\n\nAzure Blob:\n1. Set container access level to Private\n2. Enable soft delete and versioning\n3. Use Private Endpoints to restrict network access\n\nGeneral best practices:\n- Least privilege: only grant the minimum required permissions\n- Enable access logging on all buckets\n- Use bucket lifecycle policies to expire old data\n- Encrypt sensitive data at rest",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.html"
+    ]
+  },
+  "SEC-CLOUD-002": {
+    "title": "Public Cloud Storage Bucket Exposed",
+    "description": "A publicly accessible cloud storage bucket matching the target domain was found. Files in this bucket are readable by anyone on the internet.",
+    "risk": "CRITICAL",
+    "impact": "Exposed buckets can contain database backups, user uploads, configuration files with credentials, logs, PII, and source code — all accessible without authentication.",
+    "remediation": "IMMEDIATE ACTION REQUIRED:\n\n1. Disable public access immediately:\n\nAWS S3:\n# Block all public access:\naws s3api put-public-access-block \\\n  --bucket YOUR-BUCKET-NAME \\\n  --public-access-block-configuration 'BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true'\n\n# Remove bucket policy if overly permissive:\naws s3api delete-bucket-policy --bucket YOUR-BUCKET-NAME\n\nGCS:\ngcloud storage buckets update gs://YOUR-BUCKET --no-public-access-prevention=false\n# Remove allUsers IAM binding:\ngcloud storage buckets remove-iam-policy-binding gs://YOUR-BUCKET --member=allUsers --role=roles/storage.objectViewer\n\nAzure Blob:\naz storage container set-permission --name YOUR-CONTAINER --public-access off\n\n2. Audit bucket contents:\n   aws s3 ls s3://YOUR-BUCKET --recursive | head -100\n   # Look for: .env, *.sql, *.bak, config*, credentials*, private*\n\n3. If sensitive data was exposed:\n   - Notify affected users per breach notification laws (GDPR, CCPA)\n   - Rotate any exposed credentials IMMEDIATELY\n   - Review access logs for evidence of data exfiltration\n   - File incident report\n\n4. Prevent recurrence:\n   - Enable AWS Config rule: s3-bucket-public-read-prohibited\n   - Set up CloudTrail + CloudWatch alarms for ACL changes\n   - Use AWS Security Hub / GCP Security Command Center",
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/",
+      "https://www.trendmicro.com/vinfo/us/security/news/virtualization-and-cloud/cloud-security-101-what-is-cloud-misconfiguration",
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+    ]
   }
 }
