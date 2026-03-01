@@ -56,10 +56,13 @@ bash scripts/run_all.sh https://example.com
 # With options
 bash scripts/run_all.sh -o /tmp/results -t 15 https://example.com
 
-# WordPress authenticated scan
+# WordPress authenticated scan (requires authorization)
 bash scripts/run_all.sh --user admin --pass 'password' https://example.com
 
 # Brute force lockout test (requires authorization)
+bash scripts/run_all.sh --brute-force https://example.com
+
+# Full scane with brute force scan and authenticated scan (requires authorization)
 bash scripts/run_all.sh --brute-force https://example.com
 ```
 
@@ -67,26 +70,17 @@ bash scripts/run_all.sh --brute-force https://example.com
 
 ## Output
 
-Scan progress with final summary:
 ```
-▶ Running scope...
-▶ Running headers...
-...
-================================================
-  Assessment Complete
-================================================
-✓ Report generated: test_output/report.md
-Grade: C | 14 issues (2 critical, 5 high, 7 medium) | 55 passed
+# Report: test_output/report.md
 ```
 
 **Report includes:**
-- **Executive Summary** — Security grade (A–F), issue count metrics, risk assessment
-- **Priority Actions** — Critical/High findings listed at top for immediate attention
-- **Detailed Findings** — Per-step tables showing only FAIL/WARN checks with severity
-- **WordPress-Specific Section** — Dedicated findings table when WordPress detected
-- **Remediation Guidance** — Step-by-step fix instructions with code (Apache/Nginx/PHP/WordPress)
-- **Conclusion** — Next steps timeline (24-48 hrs for Critical → 1 month for Low)
-- **Out of Scope Table** — Clear boundaries of black-box vs server-access testing
+- Security grade (A–F)
+- Priority findings (Critical/High at top)
+- Per-step issues table (FAIL/WARN only)
+- WordPress-specific section (when detected)
+- Remediation code (Apache/Nginx/PHP/WordPress)
+- Out-of-scope boundaries
 
 ---
 
