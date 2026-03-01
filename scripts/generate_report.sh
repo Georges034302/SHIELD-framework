@@ -216,7 +216,7 @@ for step_num in {1..6}; do
         2) STEP_TITLE="Step 2: External Hardening" ;;
         3) STEP_TITLE="Step 3: Authentication & Session Controls" ;;
         4) STEP_TITLE="Step 4: Authorization Review" ;;
-        5) STEP_TITLE="Step 5: OWASP Defensive Controls" ;;
+        5) STEP_TITLE="Step 5: Backdoor Detection & Defensive Controls" ;;
         6) STEP_TITLE="Step 6: Infrastructure & Exposure Surface" ;;
     esac
     

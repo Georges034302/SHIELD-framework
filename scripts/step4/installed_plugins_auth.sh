@@ -64,6 +64,10 @@ for TARGET in "${ARGS[@]}"; do
         } > "$OUTPUT_FILE"
     else
         print_status "WARN" "Could not enumerate plugins"
+        
+        {
+            echo "{"
+            echo "  \"step\": \"$STEP_NAME\","
             echo "  \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\","
             echo "  \"target\": \"$TARGET\","
             echo "  \"checks\": ["

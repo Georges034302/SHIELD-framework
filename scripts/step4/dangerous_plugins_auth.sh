@@ -85,6 +85,10 @@ for TARGET in "${ARGS[@]}"; do
         } > "$OUTPUT_FILE"
     else
         print_status "PASS" "No dangerous code execution plugins detected"
+        
+        {
+            echo "{"
+            echo "  \"step\": \"$STEP_NAME\","
             echo "  \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\","
             echo "  \"target\": \"$TARGET\","
             echo "  \"checks\": ["
