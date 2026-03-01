@@ -1,4 +1,9 @@
-# SHIELD®
+<div align="left">
+  <h1>
+    <img src="logos/shield.png" alt="SHIELD Logo" width="70" style="vertical-align: bottom; margin-right: 10px;"/> SHIELD®
+  </h1>
+</div>
+
 ### Security Hardening & Infrastructure Exposure Lifecycle Diagnostics Framework
 
 > A systematic black-box security assessment toolkit for web applications.
