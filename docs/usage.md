@@ -2,7 +2,7 @@
 
 ## `run_all.sh`
 
-Orchestrates a full assessment: runs all 64 step scripts in sequence, writes JSON results to the output directory, then automatically invokes `generate_report.sh` to produce the final Markdown report.
+Orchestrates a full assessment: runs all 69 step scripts in sequence, writes JSON results to the output directory, then automatically invokes `generate_report.sh` to produce the final Markdown report.
 
 ### Synopsis
 
@@ -17,20 +17,45 @@ bash scripts/run_all.sh [options] <url> [url2 ...]
 | `-o <dir>` | `./test_output` | Directory where JSON results and the final report are written |
 | `-t <sec>` | `10` | Per-request HTTP timeout in seconds |
 | `--brute-force` | off | Enable brute-force login checks in Step 3 (`brute_force_check.sh`). **Only use against targets you own or have written authorisation for.** |
+| `--user <name>` | — | WordPress admin username (enables authenticated testing) |
+| `--pass <pass>` | — | WordPress admin password (required with `--user`) |
 | `-h` / `--help` | — | Print usage and exit |
 
 ### Examples
 
 ```bash
-# Standard assessment
+# Standard assessment (black-box, no credentials)
 bash scripts/run_all.sh https://example.com
 
 # Custom output directory and timeout
 bash scripts/run_all.sh -o /tmp/shield_out -t 15 https://example.com
 
-# Enable brute-force checks (authorised targets only)
+# Enable brute-force checks (authorized targets only)
 bash scripts/run_all.sh --brute-force https://example.com
+
+# Authenticated testing (deeper plugin and configuration analysis)
+bash scripts/run_all.sh --user admin --pass 'SecurePass123!' https://example.com
+
+# Combined: brute-force + authenticated testing
+bash scripts/run_all.sh --brute-force --user admin --pass 'SecurePass123!' https://example.com
 ```
+
+### Authenticated Testing
+
+When `--user` and `--pass` are provided, SHIELD performs **authenticated testing** in addition to standard black-box checks:
+
+**Step 1 — Authentication:**
+- Logs into WordPress admin panel
+- Establishes session for use in subsequent steps
+- Verifies admin access rights
+
+**Step 4 — Authenticated Authorization Checks:**
+- Enumerates all installed plugins with versions
+- Detects **dangerous code execution plugins** (WPCode, Insert Headers & Footers, file managers)
+- Tests theme and plugin file editor accessibility
+- Reports as **CRITICAL** if code execution capabilities found
+
+**Security Note:** Credentials are handled securely and only used for the duration of the scan. Session cookies are stored in `$OUT/.session_cookies` and can be deleted after testing.
 
 ### Output Structure
 
@@ -38,10 +63,10 @@ After a run, the output directory contains:
 
 ```
 test_output/
-├── step1/   scope.json, wp_version.json
+├── step1/   scope.json, wp_version.json, authenticate.json  (3 files)
 ├── step2/   headers.json, https.json, tls.json, ...  (16 files)
 ├── step3/   cookie_flags.json, ratelimit.json, ...   (11 files)
-├── step4/   access_control.json, cors_check.json, ... (16 files)
+├── step4/   access_control.json, cors_check.json, ... (19 files)
 ├── step5/   owasp_defensive.json, env_exposure.json, ... (12 files)
 ├── step6/   dns_integrity.json, port_scan.json, ...  (8 files)
 └── report.md   ← final consolidated report

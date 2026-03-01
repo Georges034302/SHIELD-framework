@@ -25,5 +25,10 @@ step4/
 ├── wp_config_exposure.sh # [WP] wp-config.php / backup config file readable from web
 ├── wp_debug.sh           # [WP] WP_DEBUG active; debug.log web-accessible
 ├── wp_plugins.sh         # [WP] Plugin version detection; known-vulnerable plugin check
-└── xmlrpc.sh             # [WP] XML-RPC active; system.multicall brute amplification; pingback SSRF
+├── xmlrpc.sh             # [WP] XML-RPC active; system.multicall brute amplification; pingback SSRF
+│
+│   ── Authenticated Tests (require --user and --pass) ──────────
+├── installed_plugins_auth.sh    # [AUTH] Enumerate all installed plugins and versions
+├── dangerous_plugins_auth.sh    # [AUTH] Detect code execution plugins (WPCode, file managers)
+└── file_editors_auth.sh         # [AUTH] Check if theme/plugin file editors are accessible
 ```

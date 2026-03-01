@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Step 1 establishes the target baseline before any security checks run. It resolves the target URL, detects WordPress and its version, and writes findings used by later steps to gate WP-specific checks. Two JSON files are produced.
+Step 1 establishes the target baseline before any security checks run. It resolves the target URL, detects WordPress and its version, and optionally authenticates if credentials are provided. Findings are used by later steps to gate WP-specific checks and enable authenticated testing. Three JSON files are produced.
 
 ---
 
@@ -12,6 +12,7 @@ Step 1 establishes the target baseline before any security checks run. It resolv
 |------|--------|-------------|
 | `step1/scope.json` | `scope.sh` | Target scope confirmation — resolves URL, HTTP code, final URL after redirects |
 | `step1/wp_version.json` | `wp_version.sh` | WordPress detection result and version exposure findings |
+| `step1/authenticate.json` | `authenticate.sh` | WordPress authentication result (only produced when --user and --pass provided) |
 
 ---
 

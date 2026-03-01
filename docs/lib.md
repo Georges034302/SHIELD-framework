@@ -9,8 +9,8 @@ Reusable Bash modules sourced by every step script. Centralises CLI parsing, HTT
 ```
 scripts/lib/
 ├── cli.sh          # CLI argument parser — sourced first by every script
-│                   #   Exports: OUT, TIMEOUT, ARGS[], BRUTE_FORCE
-│                   #   Flags: -o <dir>, -t <sec>, --brute-force, -h/--help
+│                   #   Exports: OUT, TIMEOUT, ARGS[], BRUTE_FORCE, WP_USER, WP_PASS
+│                   #   Flags: -o <dir>, -t <sec>, --brute-force, --user <name>, --pass <pass>, -h/--help
 │
 ├── http.sh         # HTTP request helpers
 │                   #   fetch_headers(url, timeout)    → raw response headers

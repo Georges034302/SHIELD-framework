@@ -1250,5 +1250,40 @@
       "https://owasp.org/www-community/attacks/Server_Side_Request_Forgery",
       "https://wordpress.org/documentation/article/hardening-wordpress/#xml-rpc"
     ]
+  },
+  "SEC-EDIT-001": {
+    "title": "WordPress Theme Editor Accessible",
+    "description": "The built-in WordPress theme editor is accessible and functional. This allows authenticated administrators to edit PHP theme files directly from the WordPress admin panel, which can be exploited to gain remote code execution if admin credentials are compromised.",
+    "risk": "HIGH",
+    "impact": "Attackers who compromise an admin account can inject malicious PHP code into theme files, achieving complete server compromise. This is a common post-exploitation technique.",
+    "remediation": "Disable the theme and plugin file editors by adding this to wp-config.php:\n\ndefine('DISALLOW_FILE_EDIT', true);\n\nPlace this line before the /* That's all, stop editing! */ comment.\n\nAlternatively, use a security plugin to disable file editing:\n- iThemes Security: Settings > WordPress Tweaks > Disable File Editor\n- Wordfence: Firewall > All Firewall Options > Disable the file editor for plugins and themes\n\nFor managed WordPress hosting, check if this is already enforced at the hosting level.",
+    "references": [
+      "https://wordpress.org/documentation/article/hardening-wordpress/#disable-file-editing",
+      "https://developer.wordpress.org/apis/wp-config-php/#disable-plugin-and-theme-editor",
+      "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/10-Business_Logic_Testing/09-Test_Upload_of_Malicious_Files"
+    ]
+  },
+  "SEC-EDIT-002": {
+    "title": "WordPress Plugin Editor Accessible",
+    "description": "The built-in WordPress plugin editor is accessible and functional. This allows authenticated administrators to edit PHP plugin files directly, providing a direct path to remote code execution if admin credentials are compromised.",
+    "risk": "HIGH",
+    "impact": "Compromised admin accounts can inject backdoors or malicious code into plugin files. This is particularly dangerous as plugins often run on every page load.",
+    "remediation": "Disable the theme and plugin file editors by adding this to wp-config.php:\n\ndefine('DISALLOW_FILE_EDIT', true);\n\nPlace this line before the /* That's all, stop editing! */ comment.\n\nThis single setting disables both theme and plugin editors.\n\nAlternatively, use a security plugin:\n- Wordfence: Firewall > All Firewall Options > Disable the file editor\n- iThemes Security: Settings > WordPress Tweaks > Disable File Editor\n\nVerify the setting by visiting Appearance > Theme File Editor — you should see an error message stating editing has been disabled.",
+    "references": [
+      "https://wordpress.org/documentation/article/hardening-wordpress/#disable-file-editing",
+      "https://developer.wordpress.org/apis/wp-config-php/#disable-plugin-and-theme-editor"
+    ]
+  },
+  "SEC-PLUGIN-001": {
+    "title": "Dangerous Code Execution Plugin Detected",
+    "description": "One or more plugins that allow arbitrary PHP code execution are installed and active. Common examples include WPCode (Insert Headers and Footers), Code Snippets, and file manager plugins. These plugins provide legitimate functionality but become critical security risks if admin credentials are compromised.",
+    "risk": "CRITICAL",
+    "impact": "If admin credentials are compromised, attackers can use these plugins to execute arbitrary PHP code without needing to upload files or edit themes. This provides immediate server-level access. Even with strong credentials, these plugins expand the attack surface and should be carefully evaluated.",
+    "remediation": "1. Review each code execution plugin for necessity:\n   - WPCode / Insert Headers & Footers: Consider moving custom code to child theme functions.php\n   - Code Snippets: Migrate snippets to theme or mu-plugins\n   - File Manager plugins: Use SFTP/SSH instead of web-based file management\n\n2. If the plugin is required:\n   - Implement 2FA for all admin accounts using plugins like:\n     * Wordfence Login Security (Free, Google Authenticator)\n     * Two Factor Authentication (WordPress.org)\n   - Restrict admin access by IP:\n     • Apache: <Directory /wp-admin>\n               Require ip 203.0.113.0/24\n             </Directory>\n     • Nginx: location /wp-admin {\n                allow 203.0.113.0/24;\n                deny all;\n              }\n   - Enable WordPress audit logging (WP Activity Log, Simple History)\n   - Consider role-based restrictions to prevent lower-privilege users from accessing these plugins\n\n3. Remove unused code execution plugins immediately.\n\n4. For WPCode specifically:\n   - If keeping, restrict access using WPCode Pro role management\n   - Disable code execution for non-superadmin roles\n   - Enable code review/approval workflow if available",
+    "references": [
+      "https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities",
+      "https://wordpress.org/documentation/article/hardening-wordpress/#plugins",
+      "https://www.wordfence.com/blog/2021/03/critical-vulnerabilities-patched-in-wpcode-plugin/"
+    ]
   }
 }

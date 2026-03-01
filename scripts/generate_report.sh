@@ -261,11 +261,15 @@ done
 if is_wordpress; then
     WP_ISSUES=""
     for json_file in "$INPUT_DIR"/step1/wp_version.json \
+                     "$INPUT_DIR"/step1/authenticate.json \
                      "$INPUT_DIR"/step3/wp_users.json \
                      "$INPUT_DIR"/step4/wp_plugins.json \
                      "$INPUT_DIR"/step4/xmlrpc.json \
                      "$INPUT_DIR"/step4/wp_debug.json \
-                     "$INPUT_DIR"/step4/wp_config_exposure.json; do
+                     "$INPUT_DIR"/step4/wp_config_exposure.json \
+                     "$INPUT_DIR"/step4/installed_plugins_auth.json \
+                     "$INPUT_DIR"/step4/dangerous_plugins_auth.json \
+                     "$INPUT_DIR"/step4/file_editors_auth.json; do
         if [ -f "$json_file" ]; then
             rows=$(jq -r '.checks[] | select(.status == "FAIL" or .status == "WARN") | "| \(.name) | \(.status) | \(.severity) | \(.found) |"' "$json_file" 2>/dev/null || true)
             [ -n "$rows" ] && WP_ISSUES="$WP_ISSUES
@@ -286,11 +290,15 @@ WordPress was detected on this target. The following WP-specific checks were per
 |-------|--------|----------|---------|
 EOF
     for json_file in "$INPUT_DIR"/step1/wp_version.json \
+                     "$INPUT_DIR"/step1/authenticate.json \
                      "$INPUT_DIR"/step3/wp_users.json \
                      "$INPUT_DIR"/step4/wp_plugins.json \
                      "$INPUT_DIR"/step4/xmlrpc.json \
                      "$INPUT_DIR"/step4/wp_debug.json \
-                     "$INPUT_DIR"/step4/wp_config_exposure.json; do
+                     "$INPUT_DIR"/step4/wp_config_exposure.json \
+                     "$INPUT_DIR"/step4/installed_plugins_auth.json \
+                     "$INPUT_DIR"/step4/dangerous_plugins_auth.json \
+                     "$INPUT_DIR"/step4/file_editors_auth.json; do
         [ -f "$json_file" ] && jq -r '.checks[] | select(.status != "SKIP") | "| \(.name) | \(.status) | \(.severity) | \(.found) |"' "$json_file" 2>/dev/null >> "$OUTPUT_FILE" || true
     done
     echo "" >> "$OUTPUT_FILE"

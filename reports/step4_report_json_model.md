@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Step 4 tests whether application resources that should be restricted are actually protected. It probes admin paths, sensitive files, API endpoints, CORS policy, directory listing, HTTP methods, backup/archive files, path traversal, file upload handling, GraphQL introspection, cloud storage ACLs, and — for WordPress targets — configuration file exposure, debug mode, plugin vulnerabilities, and xmlrpc.php. Sixteen JSON files are produced.
+Step 4 tests whether application resources that should be restricted are actually protected. It probes admin paths, sensitive files, API endpoints, CORS policy, directory listing, HTTP methods, backup/archive files, path traversal, file upload handling, GraphQL introspection, cloud storage ACLs, and — for WordPress targets — configuration file exposure, debug mode, plugin vulnerabilities, and xmlrpc.php. When credentials are provided, additional authenticated tests enumerate installed plugins, detect dangerous code execution plugins, and verify file editor access controls. Nineteen JSON files are produced.
 
 ---
 
@@ -26,6 +26,9 @@ Step 4 tests whether application resources that should be restricted are actuall
 | `step4/wp_debug.json` | SEC-WPDEBUG-001/002 | WP_DEBUG active; debug.log accessible | ✅ |
 | `step4/wp_plugins.json` | SEC-WPPLUGIN-001/002 | Plugin enumeration; known vulnerable plugin versions | ✅ |
 | `step4/xmlrpc.json` | SEC-XMLRPC-001/002/003 | xmlrpc.php enabled; multicall brute-force amplification | ✅ |
+| `step4/installed_plugins_auth.json` | — | Enumerates all installed plugins with versions (requires auth) | ✅ |
+| `step4/dangerous_plugins_auth.json` | SEC-PLUGIN-001 | Detects code execution plugins like WPCode (requires auth) | ✅ |
+| `step4/file_editors_auth.json` | SEC-EDIT-001/002 | Tests theme/plugin editor accessibility (requires auth) | ✅ |
 
 ---
 
