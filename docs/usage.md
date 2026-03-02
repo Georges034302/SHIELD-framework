@@ -105,7 +105,8 @@ test_output/
 ├── step4/   (19 JSON files)
 ├── step5/   (12 JSON files)
 ├── step6/   (8 JSON files)
-└── report.md
+├── summary_report.md  (Quick overview: grade + top findings)
+└── report.md          (Detailed findings + remediation)
 ```
 
 **JSON Format:**
@@ -145,21 +146,32 @@ bash scripts/generate_report.sh -i <input_dir> [-o <output_file>]
 | Flag | Default | Description |
 |------|---------|-------------|
 | `-i <dir>` | *(required)* | Directory containing `step*/` JSON folders |
-| `-o <file>` | `shield_report.md` | Output path for Markdown report |
+| `-o <file>` | `shield_report.md` | Output path for detailed Markdown report (summary auto-generated alongside) |
 | `-h` / `--help` | — | Print usage and exit |
 
 ### Examples
 
 ```bash
-# Generate report from saved scan results
+# Generate reports from saved scan results
 bash scripts/generate_report.sh -i test_output -o report.md
+# Creates: test_output/summary_report.md (quick view)
+#          test_output/report.md (detailed findings)
 
 # Re-generate report with custom path
 bash scripts/generate_report.sh -i /tmp/shield_run -o ~/reports/example_com.md
+# Creates: ~/reports/summary_report.md + ~/reports/example_com.md
 ```
 
 ### Report Contents
 
+**summary_report.md** (Quick triage):
+- Security grade (A–F) with visual prominence
+- Issue counts by severity
+- Top 5 critical/high findings
+- Risk status and priority timeline
+- Link to full report
+
+**report.md** (Detailed analysis):
 - **Executive summary** — Security grade (A–F), issue counts by severity
 - **Priority actions** — Critical/High findings first
 - **Per-step findings** — Grouped by assessment phase with remediation

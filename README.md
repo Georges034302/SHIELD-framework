@@ -113,10 +113,11 @@ See [docs/usage.md](docs/usage.md) for complete flag documentation.
 
 ## Report Output
 
-Generates two output types in `test_output/`:
+Generates structured output in `test_output/`:
 
-1. **Per-check JSON files** in `step{1-6}/` (69 total checks)
-2. **Consolidated report** `report.md` with security grade (A–F), priority findings, remediation guidance, and OWASP mappings
+1. **Summary report** `summary_report.md` - Quick overview with grade, key metrics, and top 5 findings
+2. **Detailed report** `report.md` - Complete findings with remediation guidance, OWASP mappings, and CWE references
+3. **Per-check JSON files** in `step{1-6}/` (69 total checks)
 
 ---
 
