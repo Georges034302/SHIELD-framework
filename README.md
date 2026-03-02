@@ -1,4 +1,7 @@
-# <img src="logos/shield.png" alt="SHIELD Logo" width="70" style="vertical-align: middle;"/> SHIELD®
+<h1>
+  <img src="logos/shield.png" alt="SHIELD Logo" width="70" align="middle"/> 
+  <span style="vertical-align: middle; display: inline-block;">SHIELD®</span>
+</h1>
 
 ### Security Hardening & Infrastructure Exposure Lifecycle Diagnostics Framework
 
