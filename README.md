@@ -1,5 +1,5 @@
 <h1>
-  <img src="logos/shield.png" alt="SHIELD Logo" width="100" align="middle"/> 
+  <img src="logos/shield.png" alt="SHIELD Logo" width="110" align="middle"/> 
   <span style="vertical-align: middle; display: inline-block;"><u>SHIELD</u>®</span>
 </h1>
 
