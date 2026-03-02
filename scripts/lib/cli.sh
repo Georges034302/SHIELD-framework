@@ -124,12 +124,7 @@ if ! validate_mode; then
   exit 2
 fi
 
-# Check authorized tests if in authorized mode
-if [[ "$SCAN_MODE" == "authorized" ]]; then
-  if ! check_authorized_tests_enabled; then
-    exit 2
-  fi
-fi
+# Mode validation complete - all authorized mode checks done in validate_mode()
 
 if [[ ${#ARGS[@]} -lt 1 ]]; then
   echo "ERROR: Provide at least one target URL."
