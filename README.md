@@ -1,6 +1,6 @@
 <div align="left">
-  <h1>
-    <img src="logos/shield.png" alt="SHIELD Logo" width="70" style="vertical-align: middle; margin-right: 10px;"/> SHIELD® 
+  <h1 style="display: flex; align-items: center;">
+    <img src="logos/shield.png" alt="SHIELD Logo" width="70" style="margin-right: 10px;"/> SHIELD® 
   </h1>
 </div>
 
