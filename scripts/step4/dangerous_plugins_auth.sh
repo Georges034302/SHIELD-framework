@@ -56,9 +56,9 @@ for TARGET in "${ARGS[@]}"; do
     
     # Check for each dangerous plugin
     for plugin in "${DANGEROUS_PLUGINS[@]}"; do
-        if echo "$plugins_html" | grep -qi "$plugin"; then
+        if printf '%s' "$plugins_html" | grep -qi "$plugin"; then
             # Extract plugin name using portable grep
-            plugin_name=$(echo "$plugins_html" | grep -i "$plugin" | grep -o 'plugin-title[^>]*>[^<]*<strong>[^<]*' | sed 's/.*<strong>//' | head -1)
+            plugin_name=$(printf '%s' "$plugins_html" | grep -i "$plugin" | grep -o 'plugin-title[^>]*>[^<]*<strong>[^<]*' | sed 's/.*<strong>//' | head -1)
             if [[ -z "$plugin_name" ]]; then
                 plugin_name="$plugin"
             fi
@@ -67,8 +67,10 @@ for TARGET in "${ARGS[@]}"; do
         fi
     done
     
+    print_status "INFO" "Checked ${#DANGEROUS_PLUGINS[@]} plugins, found ${#found_dangerous[@]} dangerous"
+    
     # Check specifically for WPCode (most critical)
-    wpcode_check=$(echo "$plugins_html" | grep -i "wpcode\|insert-headers" | head -1)
+    wpcode_check=$(printf '%s' "$plugins_html" | grep -i "wpcode\|insert-headers" | head -1)
     
     if [[ ${#found_dangerous[@]} -gt 0 ]]; then
         dangerous_list=$(IFS=', '; echo "${found_dangerous[*]}")
