@@ -2,7 +2,7 @@
 
 ## `run_all.sh`
 
-Orchestrates a full assessment: runs all 69 step scripts in sequence, writes JSON results to the output directory, then automatically invokes `generate_report.sh` to produce the final Markdown report.
+Orchestrates a full 69-check assessment, writes JSON results, and auto-generates `report.md`.
 
 ### Synopsis
 
@@ -10,70 +10,105 @@ Orchestrates a full assessment: runs all 69 step scripts in sequence, writes JSO
 bash scripts/run_all.sh [options] <url> [url2 ...]
 ```
 
-### Options
+### Core Options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-o <dir>` | `./test_output` | Directory where JSON results and the final report are written |
-| `-t <sec>` | `10` | Per-request HTTP timeout in seconds |
-| `--brute-force` | off | Enable brute-force login checks in Step 3 (`brute_force_check.sh`). **Only use against targets you own or have written authorisation for.** |
-| `--user <name>` | — | WordPress admin username (enables authenticated testing) |
-| `--pass <pass>` | — | WordPress admin password (required with `--user`) |
+| `--mode <posture\|authorized>` | `posture` | Assessment mode (see Modes below) |
+| `--i-accept-risk` | — | **Required** for authorized mode (legal acknowledgment) |
+| `-o <dir>` | `test_output` | Output directory for JSON results and report |
+| `-t <sec>` | `10` | HTTP timeout per request |
 | `-h` / `--help` | — | Print usage and exit |
+
+### Mode-Specific Options
+
+| Flag | Mode | Description |
+|------|------|-------------|
+| `--brute-force` | authorized | Enable brute force testing (requires `--i-accept-risk`) |
+| `--rate-aware` | both | Respect Retry-After headers, exponential backoff |
+| `--authorization-ref <id>` | authorized | Authorization reference for audit trail |
+
+### WordPress Options
+
+| Flag | Description |
+|------|-------------|
+| `--user <name>` | WordPress admin username (enables authenticated testing) |
+| `--pass <pass>` | WordPress admin password (required with `--user`) |
 
 ### Examples
 
+**Posture Mode (Default — Safe for CI/CD):**
 ```bash
-# Standard assessment (black-box, no credentials)
+# Basic posture scan
 bash scripts/run_all.sh https://example.com
 
 # Custom output directory and timeout
 bash scripts/run_all.sh -o /tmp/shield_out -t 15 https://example.com
 
-# Enable brute-force checks (authorized targets only)
-bash scripts/run_all.sh --brute-force https://example.com
+# Rate-aware scanning (respects Retry-After headers)
+bash scripts/run_all.sh --rate-aware https://example.com
 
-# Authenticated testing (deeper plugin and configuration analysis)
+# WordPress authenticated posture scan
 bash scripts/run_all.sh --user admin --pass 'SecurePass123!' https://example.com
-
-# Combined: brute-force + authenticated testing
-bash scripts/run_all.sh --brute-force --user admin --pass 'SecurePass123!' https://example.com
 ```
 
-### Authenticated Testing
+**Authorized Mode (Active Testing — Requires Written Authorization):**
+```bash
+# Enable authorized mode with brute force testing
+bash scripts/run_all.sh --mode authorized --i-accept-risk --brute-force https://example.com
 
-When `--user` and `--pass` are provided, SHIELD performs **authenticated testing** in addition to standard black-box checks:
+# Authorized mode with audit trail reference
+bash scripts/run_all.sh --mode authorized --i-accept-risk --authorization-ref "PEN-2026-001" https://example.com
+
+# Full authorized scan with WordPress authentication
+bash scripts/run_all.sh --mode authorized --i-accept-risk --brute-force --user admin --pass 'SecurePass123!' https://example.com
+```
+
+### Modes
+
+**🔵 Posture Mode (Default):**
+- Passive reconnaissance only
+- No brute force, no active authentication probing
+- Safe for continuous monitoring and CI/CD pipelines
+- No risk of triggering security controls
+
+**🔴 Authorized Mode:**
+- Enables brute force lockout testing (10 attempts max)
+- Active authentication probing
+- Requires `--i-accept-risk` flag (legal acknowledgment)
+- **Only use with explicit written authorization**
+
+### WordPress Authenticated Testing
+
+When `--user` and `--pass` are provided, SHIELD performs authenticated checks:
 
 **Step 1 — Authentication:**
 - Logs into WordPress admin panel
-- Establishes session for use in subsequent steps
+- Establishes session for subsequent steps
 - Verifies admin access rights
 
-**Step 4 — Authenticated Authorization Checks:**
-- Enumerates all installed plugins with versions
-- Detects **dangerous code execution plugins** (WPCode, Insert Headers & Footers, file managers)
-- Tests theme and plugin file editor accessibility
+**Step 4 — Authenticated Authorization:**
+- Enumerates installed plugins with versions
+- Detects dangerous code execution plugins (WPCode, Insert Headers & Footers, file managers)
+- Tests theme/plugin file editor accessibility
 - Reports as **CRITICAL** if code execution capabilities found
 
-**Security Note:** Credentials are handled securely and only used for the duration of the scan. Session cookies are stored in `$OUT/.session_cookies` and can be deleted after testing.
+**Security:** Credentials used only during scan. Session cookies stored in `$OUT/.session_cookies` and can be deleted after.
 
 ### Output Structure
 
-After a run, the output directory contains:
-
 ```
 test_output/
-├── step1/   scope.json, wp_version.json, authenticate.json  (3 files)
-├── step2/   headers.json, https.json, tls.json, ...  (16 files)
-├── step3/   cookie_flags.json, ratelimit.json, ...   (11 files)
-├── step4/   access_control.json, cors_check.json, ... (19 files)
-├── step5/   owasp_defensive.json, env_exposure.json, ... (12 files)
-├── step6/   dns_integrity.json, port_scan.json, ...  (8 files)
-└── report.md   ← final consolidated report
+├── step1/   (3 JSON files)
+├── step2/   (16 JSON files)
+├── step3/   (11 JSON files)
+├── step4/   (19 JSON files)
+├── step5/   (12 JSON files)
+├── step6/   (8 JSON files)
+└── report.md
 ```
 
-Each JSON file follows the structure:
-
+**JSON Format:**
 ```json
 {
   "step": "step2/headers",
@@ -97,7 +132,7 @@ Each JSON file follows the structure:
 
 ## `generate_report.sh`
 
-Reads all `step*/*.json` files from a results directory and produces a graded Markdown security report. Called automatically by `run_all.sh`, but can also be run standalone against any saved results.
+Consolidates `step*/` JSON files into a graded Markdown report. Called automatically by `run_all.sh`, but can run standalone.
 
 ### Synopsis
 
@@ -109,41 +144,47 @@ bash scripts/generate_report.sh -i <input_dir> [-o <output_file>]
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-i <dir>` | *(required)* | Directory containing `step*/` JSON output folders |
-| `-o <file>` | `shield_report.md` | Output path for the generated Markdown report |
+| `-i <dir>` | *(required)* | Directory containing `step*/` JSON folders |
+| `-o <file>` | `shield_report.md` | Output path for Markdown report |
 | `-h` / `--help` | — | Print usage and exit |
 
 ### Examples
 
 ```bash
-# Re-generate report from a previous scan
-bash scripts/generate_report.sh -i ./test_output -o ./test_output/report.md
+# Generate report from saved scan results
+bash scripts/generate_report.sh -i test_output -o report.md
 
-# Write to a custom path
+# Re-generate report with custom path
 bash scripts/generate_report.sh -i /tmp/shield_run -o ~/reports/example_com.md
 ```
 
-### Report Sections
+### Report Contents
 
-| Section | Contents |
-|---------|----------|
-| **Executive Summary** | Grade (A–F), issue counts by severity, total checks run |
-| **Issue Summary Table** | One row per FAIL/WARN, with severity and SEC ID |
-| **Detailed Findings** | Per-check finding: what was found, what was expected, remediation guidance |
-| **WordPress Findings** | Shown only when Step 1 detects WordPress; WP-specific issues isolated |
-| **Out of Scope** | Server-side / infrastructure controls outside black-box assessment scope |
+- **Executive summary** — Security grade (A–F), issue counts by severity
+- **Priority actions** — Critical/High findings first
+- **Per-step findings** — Grouped by assessment phase with remediation
+- **OWASP mappings** — WSTG + CWE references per finding
+- **WordPress analysis** — Platform-specific issues (if detected)
+- **Scope disclaimer** — Out-of-scope items (database, filesystem, source)
 
 ### Grading Scale
 
 | Grade | Criteria |
 |-------|----------|
-| A | No CRITICAL, HIGH, or MEDIUM issues |
-| B+ | 1 MEDIUM issue |
-| B | 2–4 MEDIUM issues |
-| C | 1 HIGH **or** 5+ MEDIUM issues |
-| D | 3+ HIGH **or** 1 HIGH + 3 MEDIUM |
-| F | Any CRITICAL issue |
+| **A** | No CRITICAL, HIGH, or MEDIUM issues |
+| **B+** | 1 MEDIUM issue |
+| **B** | 2–4 MEDIUM issues |
+| **C** | 1 HIGH **or** 5+ MEDIUM issues |
+| **D** | 3+ HIGH **or** 1 HIGH + 3 MEDIUM |
+| **F** | Any CRITICAL issue |
 
-### Remediation Database
+See [docs/scoring.md](scoring.md) for complete grading methodology.
 
-`generate_report.sh` enriches each finding with fix guidance from `data/remediation.json`. Each entry is keyed by SEC ID (e.g. `SEC-HDR-001`) and contains a plain-English remediation step. If a SEC ID has no entry, the check is listed without a remediation note.
+---
+
+## Remediation Database
+
+All remediation guidance comes from [data/remediation.json](../data/remediation.json), keyed by SEC ID (e.g., `SEC-HDR-001`). Each entry includes:
+- Apache/Nginx/PHP/WordPress configuration samples
+- OWASP WSTG references
+- CWE mappings

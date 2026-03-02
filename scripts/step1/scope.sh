@@ -13,7 +13,7 @@ for TARGET in "${ARGS[@]}"; do
     mkdir -p "$OUTPUT_DIR"
     OUTPUT_FILE="$OUTPUT_DIR/scope.json"
     
-    # Generate JSON output (placeholder implementation)
+    # Generate JSON output for authorization documentation check
     {
         echo "{"
         echo "  \"step\": \"$STEP_NAME\","

@@ -93,11 +93,13 @@ compute_grade() {
     fi
 }
 
-# Get target URL - prefer step1/scope.json, fall back to first sorted JSON
+# Get target URL and metadata - prefer step1/scope.json, fall back to first sorted JSON
 if [[ -f "$INPUT_DIR/step1/scope.json" ]]; then
     TARGET=$(jq -r '.target' "$INPUT_DIR/step1/scope.json" 2>/dev/null || echo "Unknown")
+    SCAN_MODE=$(jq -r '.metadata.mode // "posture"' "$INPUT_DIR/step1/scope.json" 2>/dev/null || echo "posture")
 else
     TARGET=$(jq -r '.target' "$(find "$INPUT_DIR" -name '*.json' -type f | sort | head -n1)" 2>/dev/null || echo "Unknown")
+    SCAN_MODE="posture"
 fi
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 
@@ -121,7 +123,8 @@ cat > "$OUTPUT_FILE" <<EOF
 
 **Target:** $TARGET  
 **Assessment Date:** $TIMESTAMP  
-**Framework Version:** 1.0.0
+**Framework Version:** 2.0.0  
+**Assessment Mode:** $SCAN_MODE
 
 ---
 
@@ -336,6 +339,10 @@ for rem_id in "${REMEDIATION_IDS[@]}"; do
         IMPACT=$(jq -r ".\"$rem_id\".impact // \"Unknown impact\"" "$REMEDIATION_DB")
         REMEDY=$(jq -r ".\"$rem_id\".remediation // \"No remediation available\"" "$REMEDIATION_DB")
         REFS=$(jq -r ".\"$rem_id\".references[]? // empty" "$REMEDIATION_DB")
+        WSTG_ID=$(jq -r ".\"$rem_id\".wstg_id // \"\"" "$REMEDIATION_DB")
+        WSTG_URL=$(jq -r ".\"$rem_id\".wstg_url // \"\"" "$REMEDIATION_DB")
+        CWE_ID=$(jq -r ".\"$rem_id\".cwe_id // \"\"" "$REMEDIATION_DB")
+        CWE_URL=$(jq -r ".\"$rem_id\".cwe_url // \"\"" "$REMEDIATION_DB")
         
         cat >> "$OUTPUT_FILE" <<EOF
 
@@ -355,6 +362,18 @@ $REMEDY
 \`\`\`
 
 EOF
+        
+        # Add OWASP WSTG and CWE mappings
+        if [ -n "$WSTG_ID" ] || [ -n "$CWE_ID" ]; then
+            echo "**Standards Mapping:**" >> "$OUTPUT_FILE"
+            if [ -n "$WSTG_ID" ]; then
+                echo "- OWASP WSTG: [$WSTG_ID]($WSTG_URL)" >> "$OUTPUT_FILE"
+            fi
+            if [ -n "$CWE_ID" ]; then
+                echo "- CWE: [$CWE_ID]($CWE_URL)" >> "$OUTPUT_FILE"
+            fi
+            echo "" >> "$OUTPUT_FILE"
+        fi
         
         if [ -n "$REFS" ]; then
             echo "**References:**" >> "$OUTPUT_FILE"

@@ -1,6 +1,25 @@
 {
+  "_meta": {
+    "version": "2.0.0",
+    "last_updated": "2026-03-02",
+    "description": "SHIELD Framework security remediation database with OWASP WSTG and CWE mappings",
+    "standards": {
+      "owasp_wstg": "4.2",
+      "owasp_asvs": "4.0.3",
+      "mozilla_tls": "5.7",
+      "cwe": "4.13"
+    },
+    "contributors": [
+      "Georges Bou Ghantous"
+    ],
+    "changelog_url": "https://github.com/Georges034302/SHIELD-framework/blob/main/CHANGELOG.md"
+  },
   "SEC-HSTS-001": {
     "title": "Missing or Weak HSTS Header",
+    "wstg_id": "WSTG-CONF-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security",
+    "cwe_id": "CWE-311",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/311.html",
     "description": "The Strict-Transport-Security (HSTS) header is missing or has insufficient max-age value. This leaves users vulnerable to man-in-the-middle attacks during the initial connection or after the HSTS period expires.",
     "risk": "HIGH",
     "impact": "Attackers can intercept traffic, steal credentials, or inject malicious content via protocol downgrade attacks.",
@@ -13,6 +32,10 @@
   },
   "SEC-FRAME-001": {
     "title": "Missing Clickjacking Protection",
+    "wstg_id": "WSTG-CLNT-09",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-side_Testing/09-Testing_for_Clickjacking",
+    "cwe_id": "CWE-1021",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/1021.html",
     "description": "Neither X-Frame-Options nor Content-Security-Policy frame-ancestors directive is present, leaving the site vulnerable to clickjacking attacks.",
     "risk": "MEDIUM",
     "impact": "Attackers can embed your site in a malicious iframe and trick users into performing unintended actions.",
@@ -25,6 +48,10 @@
   },
   "SEC-XCTO-001": {
     "title": "Missing X-Content-Type-Options Header",
+    "wstg_id": "WSTG-CONF-09",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Extensions_Handling",
+    "cwe_id": "CWE-16",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/16.html",
     "description": "The X-Content-Type-Options header is not set, allowing browsers to MIME-sniff content types, which can lead to security vulnerabilities.",
     "risk": "LOW",
     "impact": "Browsers may misinterpret file types, potentially executing malicious scripts disguised as other content types.",
@@ -36,6 +63,10 @@
   },
   "SEC-RP-001": {
     "title": "Missing or Weak Referrer-Policy",
+    "wstg_id": "WSTG-CONF-10",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/10-Test_for_Subdomain_Takeover",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html",
     "description": "The Referrer-Policy header is missing or uses a permissive policy, potentially leaking sensitive information in referrer headers.",
     "risk": "LOW",
     "impact": "URLs containing session tokens, user IDs, or other sensitive data may be leaked to third-party sites.",
@@ -47,6 +78,10 @@
   },
   "SEC-HTTPS-001": {
     "title": "HTTP Not Redirecting to HTTPS",
+    "wstg_id": "WSTG-CONF-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security",
+    "cwe_id": "CWE-OO",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/310.html",
     "description": "The HTTP version of the site does not properly redirect to HTTPS, allowing insecure connections.",
     "risk": "HIGH",
     "impact": "Sensitive data may be transmitted unencrypted, vulnerable to interception and manipulation.",
@@ -65,7 +100,11 @@
     "references": [
       "https://www.rfc-editor.org/rfc/rfc8996.html",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-326",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/326.html"
   },
   "SEC-COOKIE-001": {
     "title": "Missing Secure Flag on Cookie",
@@ -76,7 +115,11 @@
     "references": [
       "https://owasp.org/www-community/controls/SecureCookieAttribute",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies"
-    ]
+    ],
+    "wstg_id": "WSTG-SESS-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/02-Testing_for_Cookies_Attributes",
+    "cwe_id": "CWE-614",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/614.html"
   },
   "SEC-COOKIE-002": {
     "title": "Missing HttpOnly Flag on Cookie",
@@ -87,7 +130,11 @@
     "references": [
       "https://owasp.org/www-community/HttpOnly",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies"
-    ]
+    ],
+    "wstg_id": "WSTG-SESS-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/02-Testing_for_Cookies_Attributes",
+    "cwe_id": "CWE-1004",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/1004.html"
   },
   "SEC-COOKIE-003": {
     "title": "Missing SameSite Attribute on Cookie",
@@ -98,7 +145,11 @@
     "references": [
       "https://owasp.org/www-community/SameSite",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite"
-    ]
+    ],
+    "wstg_id": "WSTG-SESS-05",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/05-Testing_for_Cross_Site_Request_Forgery",
+    "cwe_id": "CWE-352",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/352.html"
   },
   "SEC-REDIR-001": {
     "title": "HTTP Redirect Should Use 308 Instead of 301",
@@ -109,7 +160,11 @@
     "references": [
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/308",
       "https://www.rfc-editor.org/rfc/rfc7538"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security",
+    "cwe_id": "CWE-319",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/319.html"
   },
   "SEC-REDIR-002": {
     "title": "Temporary HTTP Redirect Used",
@@ -119,7 +174,11 @@
     "remediation": "Change to a permanent redirect:\n\nFor Apache:\nRedirect 308 / https://example.com/\n\nFor Nginx:\nreturn 308 https://$server_name$request_uri;",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security",
+    "cwe_id": "CWE-319",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/319.html"
   },
   "SEC-REDIR-003": {
     "title": "HTTP Redirects to Non-HTTPS URL",
@@ -129,7 +188,11 @@
     "remediation": "Ensure all HTTP traffic redirects to HTTPS URLs only:\n\nFor Apache:\nRewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=308,L]\n\nFor Nginx:\nreturn 308 https://$server_name$request_uri;",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-319",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/319.html"
   },
   "SEC-REDIR-004": {
     "title": "No HTTPS Redirect Configured",
@@ -139,7 +202,11 @@
     "remediation": "Configure HTTP to HTTPS redirect:\n\nFor Apache:\nRewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=308,L]\n\nFor Nginx:\nserver {\n    listen 80;\n    server_name example.com;\n    return 308 https://$server_name$request_uri;\n}",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-319",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/319.html"
   },
   "SEC-HSTS-002": {
     "title": "HSTS Missing includeSubDomains or preload",
@@ -150,7 +217,11 @@
     "references": [
       "https://hstspreload.org/",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security",
+    "cwe_id": "CWE-311",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/311.html"
   },
   "SEC-HSTS-003": {
     "title": "HSTS Configuration Issues",
@@ -160,7 +231,11 @@
     "remediation": "Fix all HSTS configuration issues:\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\n\nEnsure:\n- max-age is at least 31536000 (1 year)\n- includeSubDomains is present\n- preload is added (optional but recommended)\n\nFor Apache:\nHeader always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n\nFor Nginx:\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security",
+    "cwe_id": "CWE-311",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/311.html"
   },
   "SEC-CSP-001": {
     "title": "Missing Content Security Policy",
@@ -172,7 +247,11 @@
       "https://owasp.org/www-project-secure-headers/#content-security-policy",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
       "https://content-security-policy.com/"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-1021",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/1021.html"
   },
   "SEC-CSP-002": {
     "title": "Weak Content Security Policy",
@@ -183,7 +262,11 @@
     "references": [
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
       "https://csp.withgoogle.com/docs/strict-csp.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-1021",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/1021.html"
   },
   "SEC-CSP-003": {
     "title": "Multiple CSP Weaknesses Detected",
@@ -195,7 +278,11 @@
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
       "https://csp.withgoogle.com/docs/strict-csp.html",
       "https://owasp.org/www-project-secure-headers/#content-security-policy"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-1021",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/1021.html"
   },
   "SEC-INFO-001": {
     "title": "Server Information Leakage",
@@ -206,7 +293,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
       "https://owasp.org/www-project-secure-headers/"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-CERT-001": {
     "title": "Certificate Retrieval Failed",
@@ -217,7 +308,11 @@
     "references": [
       "https://letsencrypt.org/getting-started/",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-295",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/295.html"
   },
   "SEC-CERT-002": {
     "title": "Certificate Expiry Parse Error",
@@ -227,7 +322,11 @@
     "remediation": "Check your certificate manually:\n\nopenssl s_client -servername example.com -connect example.com:443 < /dev/null 2>/dev/null | openssl x509 -noout -dates\n\nIf the certificate appears malformed, regenerate it.",
     "references": [
       "https://www.openssl.org/docs/man1.1.1/man1/openssl-x509.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-295",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/295.html"
   },
   "SEC-CERT-003": {
     "title": "Certificate Date Format Error",
@@ -237,7 +336,11 @@
     "remediation": "Check certificate validity manually and consider regenerating if format is non-standard.",
     "references": [
       "https://www.openssl.org/docs/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-295",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/295.html"
   },
   "SEC-CERT-004": {
     "title": "Certificate Expired",
@@ -248,7 +351,11 @@
     "references": [
       "https://letsencrypt.org/docs/",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-298",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/298.html"
   },
   "SEC-CERT-005": {
     "title": "Certificate Expiring Soon (< 7 Days)",
@@ -258,7 +365,11 @@
     "remediation": "Renew your certificate urgently:\n\nFor Let's Encrypt:\nsudo certbot renew\n\nFor manual certificates:\n1. Generate or request a new certificate\n2. Install it before expiration\n3. Set up automated renewal to prevent future issues",
     "references": [
       "https://letsencrypt.org/docs/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-298",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/298.html"
   },
   "SEC-CERT-006": {
     "title": "Certificate Expiring Within 30 Days",
@@ -268,7 +379,11 @@
     "remediation": "Plan to renew your certificate:\n\nFor Let's Encrypt (with auto-renewal):\nsudo certbot renew --dry-run\n\nIf auto-renewal isn't working, renew manually:\nsudo certbot renew\n\nFor other providers, request renewal and schedule installation.",
     "references": [
       "https://letsencrypt.org/docs/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-298",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/298.html"
   },
   "SEC-FILES-001": {
     "title": "Sensitive File Exposed",
@@ -279,7 +394,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
       "https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-538",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/538.html"
   },
   "SEC-FILES-002": {
     "title": "Multiple Sensitive Files Exposed",
@@ -289,7 +408,11 @@
     "remediation": "Immediately restrict access to all sensitive files:\n\nFor Apache (.htaccess):\n# Block sensitive files\n<FilesMatch \"^\\.(htaccess|htpasswd|env|git)\">\n    Require all denied\n</FilesMatch>\n<FilesMatch \"\\.(sql|zip|tar\\.gz|bak|config|log)$\">\n    Require all denied\n</FilesMatch>\n\nFor Nginx:\nlocation ~ /\\.(git|env|htaccess|htpasswd) {\n    deny all;\n}\nlocation ~ \\.(sql|zip|tar\\.gz|bak|config|log)$ {\n    deny all;\n}\n\nImmediate actions:\n1. Remove .git directories from production\n2. Move .env files outside webroot\n3. Delete all backup files (.sql, .zip, .bak)\n4. Review and clean deployment process\n5. Never commit sensitive files to version control",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-538",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/538.html"
   },
   "SEC-ADMIN-001": {
     "title": "Admin Path Publicly Accessible",
@@ -300,7 +423,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-05",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+    "cwe_id": "CWE-425",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/425.html"
   },
   "SEC-ADMIN-002": {
     "title": "Multiple Admin Paths Exposed",
@@ -311,7 +438,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-05",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+    "cwe_id": "CWE-425",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/425.html"
   },
   "SEC-TLS-002": {
     "title": "TLS 1.3 Not Supported",
@@ -322,7 +453,11 @@
     "references": [
       "https://www.rfc-editor.org/rfc/rfc8446",
       "https://www.openssl.org/docs/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-326",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/326.html"
   },
   "SEC-TLS-003": {
     "title": "No Modern TLS Protocols Detected",
@@ -332,7 +467,11 @@
     "remediation": "Ensure TLS 1.2 and 1.3 are enabled:\n\nFor Apache:\nSSLProtocol -all +TLSv1.2 +TLSv1.3\nSSLCipherSuite HIGH:!aNULL:!MD5\n\nFor Nginx:\nssl_protocols TLSv1.2 TLSv1.3;\nssl_ciphers HIGH:!aNULL:!MD5;\n\nVerify:\nopenssl s_client -connect example.com:443 -tls1_2",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-326",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/326.html"
   },
   "SEC-HEADERS-001": {
     "title": "Missing Modern Security Header",
@@ -343,7 +482,11 @@
     "references": [
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-09",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Extensions_Handling",
+    "cwe_id": "CWE-693",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/693.html"
   },
   "SEC-HEADERS-002": {
     "title": "Multiple Modern Security Headers Missing",
@@ -353,7 +496,11 @@
     "remediation": "Add all modern security headers:\n\nFor Nginx:\nadd_header Permissions-Policy \"geolocation=(), camera=(), microphone=()\" always;\nadd_header Cross-Origin-Opener-Policy \"same-origin\" always;\nadd_header Cross-Origin-Embedder-Policy \"require-corp\" always;\nadd_header Cross-Origin-Resource-Policy \"same-origin\" always;\n\nFor Apache:\nHeader always set Permissions-Policy \"geolocation=(), camera=(), microphone=()\"\nHeader always set Cross-Origin-Opener-Policy \"same-origin\"\nHeader always set Cross-Origin-Embedder-Policy \"require-corp\"\nHeader always set Cross-Origin-Resource-Policy \"same-origin\"",
     "references": [
       "https://owasp.org/www-project-secure-headers/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-09",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Extensions_Handling",
+    "cwe_id": "CWE-693",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/693.html"
   },
   "SEC-HEADERS-003": {
     "title": "Most Modern Security Headers Missing",
@@ -364,7 +511,11 @@
     "references": [
       "https://owasp.org/www-project-secure-headers/",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-09",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Extensions_Handling",
+    "cwe_id": "CWE-693",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/693.html"
   },
   "SEC-CORS-001": {
     "title": "CORS Allows Any Origin with Credentials",
@@ -375,7 +526,11 @@
     "references": [
       "https://owasp.org/www-community/attacks/CORS_OriginHeaderScrutiny",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/07-Testing_Cross_Origin_Resource_Sharing",
+    "cwe_id": "CWE-942",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/942.html"
   },
   "SEC-CORS-002": {
     "title": "CORS Misconfiguration Detected",
@@ -386,7 +541,11 @@
     "references": [
       "https://owasp.org/www-community/attacks/CORS_OriginHeaderScrutiny",
       "https://portswigger.net/web-security/cors"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/07-Testing_Cross_Origin_Resource_Sharing",
+    "cwe_id": "CWE-942",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/942.html"
   },
   "SEC-DIRLISTING-001": {
     "title": "Directory Listing Enabled",
@@ -396,7 +555,11 @@
     "remediation": "Disable directory listing:\n\nFor Apache (.htaccess or httpd.conf):\nOptions -Indexes\n\nFor Nginx:\nautoindex off;\n\nFor IIS (web.config):\n<configuration>\n  <system.webServer>\n    <directoryBrowse enabled=\"false\" />\n  </system.webServer>\n</configuration>\n\nBest practices:\n1. Place an index file in every directory\n2. Disable at server level, not just per-directory\n3. Review exposed files and remove sensitive ones",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-548",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/548.html"
   },
   "SEC-DIRLISTING-002": {
     "title": "Multiple Directories with Listing Enabled",
@@ -406,7 +569,11 @@
     "remediation": "Immediately disable directory listing globally:\n\nFor Apache (httpd.conf):\n<Directory /var/www>\n    Options -Indexes +FollowSymLinks\n</Directory>\n\nFor Nginx (nginx.conf):\nhttp {\n    autoindex off;\n}\n\nFor IIS (applicationHost.config):\n<system.webServer>\n  <directoryBrowse enabled=\"false\" />\n</system.webServer>\n\nUrgent actions:\n1. Disable globally at server level\n2. Audit all exposed directories\n3. Remove any sensitive files found\n4. Add index.html to all public directories\n5. Review deployment process to prevent recurrence",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-548",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/548.html"
   },
   "SEC-API-001": {
     "title": "Open API Endpoint Detected",
@@ -417,7 +584,11 @@
     "references": [
       "https://owasp.org/www-project-api-security/",
       "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-ATRZ-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/01-Testing_Directory_Traversal_File_Include",
+    "cwe_id": "CWE-306",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/306.html"
   },
   "SEC-API-002": {
     "title": "Multiple Open API Endpoints",
@@ -428,7 +599,11 @@
     "references": [
       "https://owasp.org/www-project-api-security/",
       "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-ATRZ-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/01-Testing_Directory_Traversal_File_Include",
+    "cwe_id": "CWE-306",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/306.html"
   },
   "SEC-ERROR-001": {
     "title": "Verbose Error Pages Detected",
@@ -439,7 +614,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling",
       "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-ERRH-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling",
+    "cwe_id": "CWE-209",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/209.html"
   },
   "SEC-ERROR-002": {
     "title": "Multiple Verbose Error Patterns Detected",
@@ -450,7 +629,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/",
       "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-ERRH-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling",
+    "cwe_id": "CWE-209",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/209.html"
   },
   "SEC-CACHE-001": {
     "title": "Missing Cache-Control on Sensitive Path",
@@ -461,7 +644,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/06-Testing_for_Browser_Cache_Weaknesses",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"
-    ]
+    ],
+    "wstg_id": "WSTG-ATHN-06",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/06-Testing_for_Browser_Cache_Weaknesses",
+    "cwe_id": "CWE-524",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/524.html"
   },
   "SEC-CACHE-002": {
     "title": "Multiple Sensitive Paths Without Cache-Control",
@@ -472,7 +659,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/06-Testing_for_Browser_Cache_Weaknesses",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching"
-    ]
+    ],
+    "wstg_id": "WSTG-ATHN-06",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/06-Testing_for_Browser_Cache_Weaknesses",
+    "cwe_id": "CWE-524",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/524.html"
   },
   "SEC-ENUM-001": {
     "title": "User Enumeration Vulnerability",
@@ -483,7 +674,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-responses"
-    ]
+    ],
+    "wstg_id": "WSTG-IDNT-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
+    "cwe_id": "CWE-203",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/203.html"
   },
   "SEC-ENUM-002": {
     "title": "Multiple User Enumeration Vectors",
@@ -494,7 +689,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-IDNT-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
+    "cwe_id": "CWE-203",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/203.html"
   },
   "SEC-SESS-001": {
     "title": "Session Cookie Assigned Before Authentication",
@@ -505,7 +704,11 @@
     "references": [
       "https://owasp.org/www-community/attacks/Session_fixation",
       "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-SESS-03",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/03-Testing_for_Session_Fixation",
+    "cwe_id": "CWE-384",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/384.html"
   },
   "SEC-SESS-002": {
     "title": "Session Fixation with Missing Cookie Security Attributes",
@@ -517,7 +720,11 @@
       "https://owasp.org/www-community/attacks/Session_fixation",
       "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
       "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-SESS-03",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/03-Testing_for_Session_Fixation",
+    "cwe_id": "CWE-384",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/384.html"
   },
   "SEC-OCSP-001": {
     "title": "OCSP Stapling Not Enabled",
@@ -528,7 +735,11 @@
     "references": [
       "https://letsencrypt.org/docs/integration-guide/#implement-ocsp-stapling",
       "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_stapling"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-299",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/299.html"
   },
   "SEC-OCSP-002": {
     "title": "Certificate Revoked (OCSP Response)",
@@ -539,7 +750,11 @@
     "references": [
       "https://www.ssl.com/faqs/why-do-ssl-tls-certificates-need-to-be-revoked/",
       "https://letsencrypt.org/docs/revoking/"
-    ]
+    ],
+    "wstg_id": "WSTG-CRYP-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security",
+    "cwe_id": "CWE-299",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/299.html"
   },
   "SEC-DNS-001": {
     "title": "Missing DNS Security Records",
@@ -551,7 +766,11 @@
       "https://www.cloudflare.com/learning/dns/dns-security/",
       "https://dmarcly.com/blog/how-to-implement-dmarc-dkim-spf-to-stop-email-spoofing-phishing",
       "https://letsencrypt.org/docs/caa/"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-10",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture",
+    "cwe_id": "CWE-358",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/358.html"
   },
   "SEC-DNS-002": {
     "title": "Multiple Critical DNS Security Records Missing",
@@ -563,7 +782,11 @@
       "https://www.cloudflare.com/learning/dns/dns-security/",
       "https://cheatsheetseries.owasp.org/cheatsheets/DNS_Zone_Transfer_Cheat_Sheet.html",
       "https://www.ncsc.gov.uk/collection/email-security-and-anti-spoofing"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-10",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture",
+    "cwe_id": "CWE-358",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/358.html"
   },
   "SEC-GRAPHQL-001": {
     "title": "GraphQL Introspection Enabled in Production",
@@ -575,7 +798,11 @@
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/12-API_Testing/",
       "https://www.apollographql.com/blog/graphql/security/why-you-should-disable-graphql-introspection-in-production/",
       "https://cheatsheetseries.owasp.org/cheatsheets/GraphQL_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-GRAPHQL-002": {
     "title": "GraphQL Introspection and Playground Both Exposed",
@@ -586,7 +813,11 @@
     "references": [
       "https://cheatsheetseries.owasp.org/cheatsheets/GraphQL_Cheat_Sheet.html",
       "https://www.apollographql.com/docs/apollo-server/security/security/"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-SUBDOMAIN-001": {
     "title": "Sensitive Subdomains Exposed in Certificate Transparency Logs",
@@ -597,7 +828,11 @@
     "references": [
       "https://certificate.transparency.dev/",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-REDIRECT-001": {
     "title": "Open Redirect Vulnerability",
@@ -608,7 +843,11 @@
     "references": [
       "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/04-Testing_for_Client-Side_URL_Redirect"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/04-Testing_for_Client-Side_URL_Redirect",
+    "cwe_id": "CWE-601",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/601.html"
   },
   "SEC-REDIRECT-002": {
     "title": "Multiple Open Redirect Parameters",
@@ -618,7 +857,11 @@
     "remediation": "Implement centralized redirect validation:\n\n1. Create a single redirect utility function (see SEC-REDIRECT-001)\n\n2. Audit all redirect usage:\n   grep -r 'redirect\\|Location\\|returnUrl\\|next\\|goto' src/ --include='*.js'\n\n3. Centralize redirect handling:\n// middleware/redirect.js\nmodule.exports = function validateRedirect(req, res, next) {\n  const redirectUrl = req.query.redirect || req.query.return || req.query.next;\n  if (redirectUrl) {\n    req.safeRedirect = validateUrl(redirectUrl) || '/';\n  }\n  next();\n};\n\n4. In Nginx, remove redirect parameters entirely where not needed:\nlocation / {\n    # Strip redirect parameters from requests\n    if ($arg_redirect) { return 301 /; }\n    if ($arg_return) { return 301 /; }\n}\n\n5. Add automated tests for all redirect parameters",
     "references": [
       "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/04-Testing_for_Client-Side_URL_Redirect",
+    "cwe_id": "CWE-601",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/601.html"
   },
   "SEC-SRI-001": {
     "title": "External Resources Loaded Without Subresource Integrity",
@@ -629,7 +872,11 @@
     "references": [
       "https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity",
       "https://cheatsheetseries.owasp.org/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.html#subresource-integrity"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-353",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/353.html"
   },
   "SEC-SRI-002": {
     "title": "Multiple External Resources Without Subresource Integrity",
@@ -640,7 +887,11 @@
     "references": [
       "https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/require-sri-for"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-353",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/353.html"
   },
   "SEC-WAF-001": {
     "title": "No WAF or CDN Detected",
@@ -651,7 +902,11 @@
     "references": [
       "https://owasp.org/www-project-web-application-firewall/",
       "https://cheatsheetseries.owasp.org/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+    "cwe_id": "CWE-693",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/693.html"
   },
   "SEC-3P-001": {
     "title": "Third-Party Scripts Loaded Without Inventory Review",
@@ -662,7 +917,11 @@
     "references": [
       "https://cheatsheetseries.owasp.org/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.html",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-829",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/829.html"
   },
   "SEC-3P-002": {
     "title": "High-Risk Advertising or Tracking Scripts Detected",
@@ -674,7 +933,11 @@
       "https://cheatsheetseries.owasp.org/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.html",
       "https://www.malwarebytes.com/malvertising",
       "https://owasp.org/www-project-application-security-verification-standard/"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-829",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/829.html"
   },
   "SEC-CLOUD-001": {
     "title": "Cloud Storage Bucket Exists But Access Restricted",
@@ -685,7 +948,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/",
       "https://cheatsheetseries.owasp.org/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration",
+    "cwe_id": "CWE-16",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/16.html"
   },
   "SEC-CLOUD-002": {
     "title": "Public Cloud Storage Bucket Exposed",
@@ -697,7 +964,11 @@
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/",
       "https://www.trendmicro.com/vinfo/us/security/news/virtualization-and-cloud/cloud-security-101-what-is-cloud-misconfiguration",
       "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration",
+    "cwe_id": "CWE-732",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/732.html"
   },
   "SEC-SRVVER-001": {
     "title": "Web Server Version Exposed (EOL or Specific Version)",
@@ -708,7 +979,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
       "https://httpd.apache.org/docs/current/mod/core.html#servertokens"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-SRVVER-002": {
     "title": "Server Product Name Exposed Without Version",
@@ -718,7 +993,11 @@
     "remediation": "Remove or replace the Server header entirely:\n\nNginx (with headers-more-nginx-module):\nmore_set_headers 'Server: ';\n\nApache (with mod_headers):\nHeader unset Server\nHeader always set Server \"webserver\"\n\nCloudflare / CDN: The CDN typically replaces the Server header automatically.\n\nFor hardening beyond header removal, consider:\n- Deploying a WAF to absorb fingerprinting attempts\n- Using a reverse proxy (Nginx in front of Apache) to normalize headers",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-PHP-001": {
     "title": "End-of-Life PHP Version Exposed",
@@ -729,7 +1008,11 @@
     "references": [
       "https://www.php.net/supported-versions.php",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework",
+    "cwe_id": "CWE-1104",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/1104.html"
   },
   "SEC-PHP-002": {
     "title": "PHP Version or Technology Stack Exposed",
@@ -739,7 +1022,11 @@
     "remediation": "Suppress the X-Powered-By header:\n\nphp.ini:\nexpose_php = Off\n\nApache .htaccess:\nHeader unset X-Powered-By\nHeader always unset X-Powered-By\n\nNginx:\nlocation ~ \\.php$ {\n    fastcgi_hide_header X-Powered-By;\n    ...\n}\n\nFor Express/Node.js (also sends X-Powered-By: Express):\napp.disable('x-powered-by');\n// Or with helmet:\napp.use(helmet());\n\nVerify after change:\ncurl -I https://yourdomain.com | grep -i powered",
     "references": [
       "https://www.php.net/manual/en/ini.core.php#ini.expose-php"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-LOGIN-001": {
     "title": "Login Page Missing CAPTCHA",
@@ -750,7 +1037,11 @@
     "references": [
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html",
       "https://owasp.org/www-community/Controls/Blocking_Brute_Force_Attacks"
-    ]
+    ],
+    "wstg_id": "WSTG-ATHN-03",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/03-Testing_for_Weak_Lock_Out_Mechanism",
+    "cwe_id": "CWE-307",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/307.html"
   },
   "SEC-LOGIN-002": {
     "title": "Login Endpoint Has No Rate Limiting or Account Lockout",
@@ -761,7 +1052,11 @@
     "references": [
       "https://owasp.org/www-community/controls/Blocking_Brute_Force_Attacks",
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#account-lockout"
-    ]
+    ],
+    "wstg_id": "WSTG-ATHN-03",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/03-Testing_for_Weak_Lock_Out_Mechanism",
+    "cwe_id": "CWE-307",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/307.html"
   },
   "SEC-BRUTE-002": {
     "title": "No Account Lockout After Repeated Failed Login Attempts",
@@ -772,7 +1067,11 @@
     "references": [
       "https://owasp.org/www-community/controls/Blocking_Brute_Force_Attacks",
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#account-lockout"
-    ]
+    ],
+    "wstg_id": "WSTG-ATHN-03",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/03-Testing_for_Weak_Lock_Out_Mechanism",
+    "cwe_id": "CWE-307",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/307.html"
   },
   "SEC-BRUTE-003": {
     "title": "Default Credential Login Succeeded",
@@ -783,7 +1082,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/02-Testing_for_Default_Credentials",
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-ATHN-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/02-Testing_for_Default_Credentials",
+    "cwe_id": "CWE-798",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/798.html"
   },
   "SEC-UPLOAD-001": {
     "title": "File Upload Endpoint Accessible Without Type Validation",
@@ -794,7 +1097,11 @@
     "references": [
       "https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload",
       "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-BUSLOGIC-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/10-Business_Logic_Testing/08-Test_Upload_of_Unexpected_File_Types",
+    "cwe_id": "CWE-434",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/434.html"
   },
   "SEC-UPLOAD-002": {
     "title": "Server Accepts Executable File Uploads (RCE Risk)",
@@ -805,7 +1112,11 @@
     "references": [
       "https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload",
       "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-BUSLOGIC-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/10-Business_Logic_Testing/08-Test_Upload_of_Unexpected_File_Types",
+    "cwe_id": "CWE-434",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/434.html"
   },
   "SEC-BACKUP-001": {
     "title": "Backup or Archive Files Exposed in Web Root",
@@ -816,7 +1127,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
       "https://cheatsheetseries.owasp.org/cheatsheets/PHP_Configuration_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-530",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/530.html"
   },
   "SEC-BACKUP-002": {
     "title": "Backup Files Contain Sensitive Credentials or Database Content",
@@ -827,7 +1142,11 @@
     "references": [
       "https://ico.org.uk/for-organisations/guide-to-data-protection/guide-to-the-general-data-protection-regulation-gdpr/personal-data-breaches/",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-530",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/530.html"
   },
   "SEC-TRAVERSAL-001": {
     "title": "Path Traversal / Local File Inclusion (LFI) Vulnerability",
@@ -839,7 +1158,11 @@
       "https://owasp.org/www-community/attacks/Path_Traversal",
       "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html",
       "https://portswigger.net/web-security/file-path-traversal"
-    ]
+    ],
+    "wstg_id": "WSTG-ATRZ-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/01-Testing_Directory_Traversal_File_Include",
+    "cwe_id": "CWE-22",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/22.html"
   },
   "SEC-METHODS-001": {
     "title": "Dangerous HTTP Methods Enabled",
@@ -850,7 +1173,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods",
       "https://www.owasp.org/index.php/Cross_Site_Tracing"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-06",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods",
+    "cwe_id": "CWE-650",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/650.html"
   },
   "SEC-METHODS-002": {
     "title": "HTTP PUT Method Active — Arbitrary File Write Possible",
@@ -860,7 +1187,11 @@
     "remediation": "Disable HTTP PUT immediately:\n\nApache:\n# httpd.conf or .htaccess:\n<LimitExcept GET POST HEAD OPTIONS>\n    Order Deny,Allow\n    Deny from all\n</LimitExcept>\n\n# If WebDAV is enabled, disable it:\na2dismod dav dav_fs dav_lock\nservice apache2 restart\n\nNginx:\nif ($request_method = PUT ) {\n    return 405;\n}\n\n# Or allow only specific methods:\nif ($request_method !~ ^(GET|HEAD|POST|OPTIONS)$ ) {\n    return 405;\n}\n\nImmediately:\n1. Check if any files were uploaded via PUT:\n   find /var/www/html -name '*.php' -newer /var/www/html/index.php\n2. Review access logs for PUT requests:\n   grep 'PUT ' /var/log/apache2/access.log\n3. Scan for webshells:\n   grep -r 'eval\\|base64_decode\\|system\\|exec\\|passthru' /var/www/html/",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-06",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods",
+    "cwe_id": "CWE-650",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/650.html"
   },
   "SEC-PHPINFO-001": {
     "title": "phpinfo() Page or Apache Server-Status Exposed",
@@ -871,7 +1202,11 @@
     "references": [
       "https://www.php.net/manual/en/function.phpinfo.php",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-ERRPAGE-001": {
     "title": "Error Pages Expose Sensitive Server or Application Information",
@@ -882,7 +1217,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/",
       "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-ERRH-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling",
+    "cwe_id": "CWE-209",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/209.html"
   },
   "SEC-SHARED-001": {
     "title": "Shared Hosting Detected — Cross-Site Contamination Risk",
@@ -893,7 +1232,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/",
       "https://www.wordfence.com/learn/cross-site-contamination/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration",
+    "cwe_id": "CWE-668",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/668.html"
   },
   "SEC-SHARED-002": {
     "title": "Hosting Control Panel Accessible on Default Port",
@@ -904,7 +1247,11 @@
     "references": [
       "https://documentation.cpanel.net/display/68Docs/WHM+Security+Advisor",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-05",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+    "cwe_id": "CWE-425",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/425.html"
   },
   "SEC-BACKDOOR-001": {
     "title": "Hidden Iframe Injection Detected",
@@ -915,7 +1262,11 @@
     "references": [
       "https://sucuri.net/guides/website-malware-removal/",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-side_Testing/"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/01-Testing_for_DOM-Based_Cross_Site_Scripting",
+    "cwe_id": "CWE-506",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/506.html"
   },
   "SEC-BACKDOOR-002": {
     "title": "SEO Spam / Pharma Backdoor Injection Detected",
@@ -926,7 +1277,11 @@
     "references": [
       "https://developers.google.com/search/docs/monitor-debug/manual-actions",
       "https://sucuri.net/guides/wordpress-hacked/"
-    ]
+    ],
+    "wstg_id": "WSTG-INPV-18",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/18-Testing_for_Server-Side_Template_Injection",
+    "cwe_id": "CWE-506",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/506.html"
   },
   "SEC-BACKDOOR-003": {
     "title": "Off-Site Meta Refresh Redirect Detected",
@@ -936,7 +1291,11 @@
     "remediation": "1. Locate injected meta refresh tags:\n   grep -r 'http-equiv.*refresh' /var/www/html/ --include='*.php' --include='*.html'\n\n2. Check WordPress theme files:\n   grep -r 'meta.*refresh' /var/www/html/wp-content/themes/\n   grep -r 'meta.*refresh' /var/www/html/wp-content/plugins/\n\n3. Check the database:\n   SELECT * FROM wp_posts WHERE post_content LIKE '%http-equiv%refresh%';\n\n4. Remove the injected code and run a full malware scan\n\n5. Legitimate use: if you added the redirect intentionally, use a 301 redirect in .htaccess or wp-config.php instead of a meta refresh — it is faster and more reliable",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/04-Testing_for_HTTP_Redirect"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/04-Testing_for_Client-Side_URL_Redirect",
+    "cwe_id": "CWE-601",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/601.html"
   },
   "SEC-CLOAK-001": {
     "title": "Content Cloaking Detected — Different Content Served to Bots vs Users",
@@ -947,7 +1306,11 @@
     "references": [
       "https://developers.google.com/search/docs/crawling-indexing/cloaking",
       "https://sucuri.net/guides/wordpress-hacked/"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+    "cwe_id": "CWE-506",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/506.html"
   },
   "SEC-DNS-003": {
     "title": "MX Record Anomaly — Possible Mail Server Hijack",
@@ -958,7 +1321,11 @@
     "references": [
       "https://www.icann.org/resources/pages/dnssec-what-is-it-why-important-2019-03-05-en",
       "https://cheatsheetseries.owasp.org/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-10",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture",
+    "cwe_id": "CWE-346",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/346.html"
   },
   "SEC-DNS-004": {
     "title": "Wildcard DNS Active or DNS Resolution Inconsistency",
@@ -968,7 +1335,11 @@
     "remediation": "Wildcard DNS:\n1. Check if wildcard is intentional:\n   dig anything-random.yourdomain.com\n   If it resolves, you have a wildcard.\n\n2. If not needed, remove the wildcard record from your DNS zone:\n   # Remove: *.yourdomain.com A/CNAME record\n\n3. If needed (e.g., for SaaS), restrict what the wildcard resolves to and monitor for subdomain takeover via crt.sh\n\nDNS inconsistency:\n1. Check resolution across multiple resolvers:\n   dig @8.8.8.8 yourdomain.com\n   dig @1.1.1.1 yourdomain.com\n   dig @9.9.9.9 yourdomain.com\n\n2. If consistently inconsistent, check for DNS cache poisoning or router compromise\n\n3. Enable DNSSEC to prevent cache poisoning:\n   cloudflare.com DNS: Enable DNSSEC in one click\n   Route53: Enable in hosted zone settings",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/10-Test_for_Subdomain_Takeover"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-10",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/10-Test_for_Subdomain_Takeover",
+    "cwe_id": "CWE-350",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/350.html"
   },
   "SEC-DNS-005": {
     "title": "Suspicious or Unauthorized TXT Records Detected",
@@ -979,7 +1350,11 @@
     "references": [
       "https://www.rfc-editor.org/rfc/rfc7208",
       "https://dmarc.org/"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-10",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture",
+    "cwe_id": "CWE-346",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/346.html"
   },
   "SEC-ENV-001": {
     "title": "Credentials or Private Key Accessible from Web Root",
@@ -990,7 +1365,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration",
       "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-522",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/522.html"
   },
   "SEC-ENV-002": {
     "title": "Sensitive Configuration or Source Files Exposed",
@@ -1000,7 +1379,11 @@
     "remediation": "Block all non-public files from web access:\n\nNginx:\nlocation ~* /(composer\\.lock|package(-lock)?\\.json|Dockerfile|docker-compose\\.ya?ml|\\.DS_Store|error_log|\\.log|web\\.config)$ {\n    deny all;\n    return 404;\n}\n\nApache .htaccess:\n<FilesMatch '(composer\\.lock|package\\.json|Dockerfile|\\.DS_Store|error_log|web\\.config)$'>\n    Order Allow,Deny\n    Deny from all\n</FilesMatch>\n\nDisable PHP error logging to web-accessible paths:\n# php.ini:\nerror_log = /var/log/php_errors.log\n# (not /var/www/html/error.log)\n\nMove configuration files outside the web root:\n/var/www/ (parent of html/)\n  composer.json\n  package.json\n/var/www/html/ (web root — only public files)\n\nDisable .DS_Store generation on Mac:\ndefaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true",
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-540",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/540.html"
   },
   "SEC-MALJS-001": {
     "title": "Obfuscated JavaScript Detected in Page Source",
@@ -1011,7 +1394,11 @@
     "references": [
       "https://owasp.org/www-community/attacks/Malicious_Content_Injection",
       "https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/01-Testing_for_DOM-Based_Cross_Site_Scripting",
+    "cwe_id": "CWE-829",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/829.html"
   },
   "SEC-MALJS-002": {
     "title": "Unknown External Script Sources Detected",
@@ -1022,7 +1409,11 @@
     "references": [
       "https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity",
       "https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-829",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/829.html"
   },
   "SEC-MINER-001": {
     "title": "Cryptominer Script Detected",
@@ -1033,7 +1424,11 @@
     "references": [
       "https://www.google.com/transparencyreport/safebrowsing/",
       "https://owasp.org/www-community/attacks/Malicious_Content_Injection"
-    ]
+    ],
+    "wstg_id": "WSTG-CLNT-13",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-Side_Testing/13-Testing_for_Cross_Site_Script_Inclusion",
+    "cwe_id": "CWE-506",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/506.html"
   },
   "SEC-PORT-001": {
     "title": "Database or Critical Service Port Exposed to Internet",
@@ -1044,7 +1439,11 @@
     "references": [
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Permission",
       "https://cheatsheetseries.owasp.org/cheatsheets/Network_Segmentation_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration",
+    "cwe_id": "CWE-16",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/16.html"
   },
   "SEC-PORT-002": {
     "title": "Admin Panel or Non-Standard Service Port Exposed",
@@ -1054,7 +1453,11 @@
     "remediation": "Restrict admin panel access to known IPs only:\n\n1. UFW — allow admin ports only from your IP:\n   ufw allow from YOUR_IP to any port 2082\n   ufw allow from YOUR_IP to any port 2083\n   ufw allow from YOUR_IP to any port 8443\n   ufw deny 2082\n   ufw deny 2083\n\n2. cPanel WHM Host Access Control:\n   WHM > Security Center > Host Access Control\n   Deny all by default, allow only your IP\n\n3. Use Cloudflare Tunnel or Tailscale to access admin panels without exposing ports:\n   cloudflared tunnel create admin-access\n\n4. Enable 2FA on all admin panels:\n   cPanel: Two-Factor Authentication under Security\n\n5. Disable unused services:\n   service webmin stop && systemctl disable webmin",
     "references": [
       "https://documentation.cpanel.net/display/68Docs/WHM+Security+Advisor"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration",
+    "cwe_id": "CWE-16",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/16.html"
   },
   "SEC-SHELL-001": {
     "title": "Known Webshell Path Accessible",
@@ -1065,7 +1468,11 @@
     "references": [
       "https://owasp.org/www-community/attacks/Web_Shell_Upload",
       "https://sucuri.net/guides/website-malware-removal/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-912",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/912.html"
   },
   "SEC-THREAT-001": {
     "title": "Server IP or Domain Listed on Threat Intelligence Blocklists",
@@ -1076,7 +1483,11 @@
     "references": [
       "https://www.spamhaus.org/faqs/",
       "https://mxtoolbox.com/blacklists.aspx"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/01-Conduct_Search_Engine_Discovery_Reconnaissance_for_Information_Leakage",
+    "cwe_id": "CWE-506",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/506.html"
   },
   "SEC-THREAT-002": {
     "title": "Suspicious Reverse DNS — IP Resolves to Unrelated or Suspicious Host",
@@ -1086,7 +1497,11 @@
     "remediation": "1. Check current reverse DNS:\n   dig -x $(dig +short yourdomain.com) +short\n\n2. Set correct PTR record:\n   - On dedicated hosting: ask your host to create a PTR record pointing to yourdomain.com\n   - On cloud (AWS EC2): use an Elastic IP and set reverse DNS in the AWS console\n   - On Linode/DigitalOcean: set hostname in droplet/linode settings to match your domain\n\n3. Good PTR format: mail.yourdomain.com → points back to yourdomain.com\n\n4. If currently on bulletproof hosting:\n   Consider migrating to legitimate hosting infrastructure\n   This will also improve email deliverability and SEO trust signals",
     "references": [
       "https://www.rfc-editor.org/rfc/rfc1912"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-02",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+    "cwe_id": "CWE-346",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/346.html"
   },
   "SEC-THREAT-003": {
     "title": "Domain Flagged by Google Safe Browsing",
@@ -1097,7 +1512,11 @@
     "references": [
       "https://developers.google.com/search/docs/monitor-debug/manual-actions",
       "https://safebrowsing.google.com/safebrowsing/report_phish/"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/01-Conduct_Search_Engine_Discovery_Reconnaissance_for_Information_Leakage",
+    "cwe_id": "CWE-506",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/506.html"
   },
   "SEC-TLS-004": {
     "title": "HSTS Header Missing or Disabled",
@@ -1108,7 +1527,11 @@
     "references": [
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
       "https://hstspreload.org/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-07",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/07-Test_HTTP_Strict_Transport_Security",
+    "cwe_id": "CWE-311",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/311.html"
   },
   "SEC-WPCONF-001": {
     "title": "wp-config.php or WordPress Config File Accessible from Web",
@@ -1119,7 +1542,11 @@
     "references": [
       "https://wordpress.org/documentation/article/hardening-wordpress/",
       "https://cheatsheetseries.owasp.org/cheatsheets/WordPress_Security_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-522",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/522.html"
   },
   "SEC-WPDEBUG-001": {
     "title": "WordPress Debug Mode Active — PHP Errors Exposed",
@@ -1130,7 +1557,11 @@
     "references": [
       "https://wordpress.org/documentation/article/debugging-in-wordpress/",
       "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-ERRH-01",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling",
+    "cwe_id": "CWE-209",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/209.html"
   },
   "SEC-WPDEBUG-002": {
     "title": "WordPress debug.log or Error Log Accessible from Web",
@@ -1141,7 +1572,11 @@
     "references": [
       "https://wordpress.org/documentation/article/debugging-in-wordpress/",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-532",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/532.html"
   },
   "SEC-WPPLUGIN-001": {
     "title": "Known Vulnerable WordPress Plugin Version Detected",
@@ -1153,7 +1588,11 @@
       "https://wpscan.com/",
       "https://patchstack.com/database",
       "https://cheatsheetseries.owasp.org/cheatsheets/WordPress_Security_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework",
+    "cwe_id": "CWE-1035",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/1035.html"
   },
   "SEC-WPPLUGIN-002": {
     "title": "WordPress Plugin Directory Listing Enabled",
@@ -1163,7 +1602,11 @@
     "remediation": "Disable directory listing:\n\nApache — global disable:\n# httpd.conf or .htaccess:\nOptions -Indexes\n\n# Or in VirtualHost:\n<Directory /var/www/html>\n    Options -Indexes\n</Directory>\n\nNginx — directory listing is off by default.\nVerify nginx.conf does NOT contain: autoindex on;\n\nAdd an empty index.html to plugin directory:\ntouch /var/www/html/wp-content/plugins/index.html\ntouch /var/www/html/wp-content/themes/index.html\ntouch /var/www/html/wp-content/uploads/index.html\n(WordPress core does this by default, but custom installs may not)",
     "references": [
       "https://wordpress.org/documentation/article/hardening-wordpress/#directory-and-file-permissions"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information",
+    "cwe_id": "CWE-548",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/548.html"
   },
   "SEC-WPUSR-001": {
     "title": "WordPress REST API Exposes User List",
@@ -1174,7 +1617,11 @@
     "references": [
       "https://developer.wordpress.org/rest-api/frequently-asked-questions/",
       "https://cheatsheetseries.owasp.org/cheatsheets/WordPress_Security_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-IDNT-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-WPUSR-002": {
     "title": "WordPress Username Enumeration via Author Archives",
@@ -1184,7 +1631,11 @@
     "remediation": "Block author enumeration redirects:\n\n1. Add to functions.php:\n// Block author enumeration\nadd_action('init', function() {\n    if (!is_admin()) {\n        if (isset($_GET['author'])) {\n            wp_redirect(home_url(), 301);\n            exit;\n        }\n    }\n});\n\n// Or return 404:\nadd_action('template_redirect', function() {\n    if (is_author()) {\n        global $wp_query;\n        $wp_query->set_404();\n        status_header(404);\n    }\n});\n\n2. Block via Nginx:\nlocation ~ \\?author= {\n    return 403;\n}\n\n3. Block via .htaccess (Apache):\nRewriteEngine On\nRewriteCond %{QUERY_STRING} ^author=\\d\nRewriteRule ^ - [F]\n\n4. Also block /author/ archive pages if not needed for your site:\n   Dashboard > Yoast SEO > Search Appearance > Archives > disable author archives",
     "references": [
       "https://wordpress.org/documentation/article/hardening-wordpress/"
-    ]
+    ],
+    "wstg_id": "WSTG-IDNT-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
+    "cwe_id": "CWE-203",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/203.html"
   },
   "SEC-WPUSR-003": {
     "title": "WordPress Login Error Messages Reveal Valid Usernames",
@@ -1194,7 +1645,11 @@
     "remediation": "Replace WordPress login error messages with a generic message:\n\n1. Add to functions.php:\n// Generic login error — do not disclose username/password validity\nadd_filter('login_errors', function() {\n    return 'Invalid credentials. Please try again.';\n});\n\n2. This replaces both 'Invalid username' and 'Incorrect password' with the same message\n\n3. Also disable login hints from XML-RPC by disabling XML-RPC entirely (see SEC-XMLRPC-001)\n\n4. Enable two-factor authentication to make enumerated username/passwords useless without the second factor:\n   Wordfence > Login Security > Two-Factor Authentication\n   Or: WP 2FA plugin (free, TOTP-based)",
     "references": [
       "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-and-error-messages"
-    ]
+    ],
+    "wstg_id": "WSTG-IDNT-04",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account",
+    "cwe_id": "CWE-203",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/203.html"
   },
   "SEC-WPVER-001": {
     "title": "WordPress Version Is End-of-Life or Critically Outdated",
@@ -1205,7 +1660,11 @@
     "references": [
       "https://wordpress.org/about/security/",
       "https://endoflife.date/wordpress"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework",
+    "cwe_id": "CWE-1104",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/1104.html"
   },
   "SEC-WPVER-002": {
     "title": "WordPress Version Publicly Disclosed",
@@ -1216,7 +1675,11 @@
     "references": [
       "https://wordpress.org/documentation/article/hardening-wordpress/",
       "https://cheatsheetseries.owasp.org/cheatsheets/WordPress_Security_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-INFO-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework",
+    "cwe_id": "CWE-200",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/200.html"
   },
   "SEC-XMLRPC-001": {
     "title": "XML-RPC Interface Active and Responding",
@@ -1227,7 +1690,11 @@
     "references": [
       "https://owasp.org/www-community/attacks/XML_External_Entity_(XXE)_Processing",
       "https://wordpress.org/documentation/article/hardening-wordpress/#xml-rpc"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-05",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+    "cwe_id": "CWE-918",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/918.html"
   },
   "SEC-XMLRPC-002": {
     "title": "XML-RPC system.multicall Enabled — Brute Force Amplification",
@@ -1238,7 +1705,11 @@
     "references": [
       "https://owasp.org/www-community/controls/Blocking_Brute_Force_Attacks",
       "https://wordpress.org/documentation/article/hardening-wordpress/#xml-rpc"
-    ]
+    ],
+    "wstg_id": "WSTG-ATHN-03",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/03-Testing_for_Weak_Lock_Out_Mechanism",
+    "cwe_id": "CWE-307",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/307.html"
   },
   "SEC-XMLRPC-003": {
     "title": "XML-RPC pingback.ping Available — SSRF and DDoS Amplification Risk",
@@ -1249,7 +1720,11 @@
     "references": [
       "https://owasp.org/www-community/attacks/Server_Side_Request_Forgery",
       "https://wordpress.org/documentation/article/hardening-wordpress/#xml-rpc"
-    ]
+    ],
+    "wstg_id": "WSTG-INPV-19",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/19-Testing_for_Server-Side_Request_Forgery",
+    "cwe_id": "CWE-918",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/918.html"
   },
   "SEC-EDIT-001": {
     "title": "WordPress Theme Editor Accessible",
@@ -1261,7 +1736,11 @@
       "https://wordpress.org/documentation/article/hardening-wordpress/#disable-file-editing",
       "https://developer.wordpress.org/apis/wp-config-php/#disable-plugin-and-theme-editor",
       "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/10-Business_Logic_Testing/09-Test_Upload_of_Malicious_Files"
-    ]
+    ],
+    "wstg_id": "WSTG-BUSLOGIC-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/10-Business_Logic_Testing/08-Test_Upload_of_Unexpected_File_Types",
+    "cwe_id": "CWE-94",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/94.html"
   },
   "SEC-EDIT-002": {
     "title": "WordPress Plugin Editor Accessible",
@@ -1272,7 +1751,11 @@
     "references": [
       "https://wordpress.org/documentation/article/hardening-wordpress/#disable-file-editing",
       "https://developer.wordpress.org/apis/wp-config-php/#disable-plugin-and-theme-editor"
-    ]
+    ],
+    "wstg_id": "WSTG-BUSLOGIC-08",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/10-Business_Logic_Testing/08-Test_Upload_of_Unexpected_File_Types",
+    "cwe_id": "CWE-94",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/94.html"
   },
   "SEC-PLUGIN-001": {
     "title": "Dangerous Code Execution Plugin Detected",
@@ -1284,7 +1767,11 @@
       "https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities",
       "https://wordpress.org/documentation/article/hardening-wordpress/#plugins",
       "https://www.wordfence.com/blog/2021/03/critical-vulnerabilities-patched-in-wpcode-plugin/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-05",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+    "cwe_id": "CWE-94",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/94.html"
   },
   "SEC-OWASP-001": {
     "title": "Minor OWASP Defensive Control Gaps",
@@ -1296,7 +1783,11 @@
       "https://owasp.org/www-project-secure-headers/",
       "https://owasp.org/www-project-top-ten/",
       "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-09",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Extensions_Handling",
+    "cwe_id": "CWE-693",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/693.html"
   },
   "SEC-OWASP-002": {
     "title": "Multiple OWASP Defensive Control Gaps",
@@ -1309,7 +1800,11 @@
       "https://owasp.org/www-project-top-ten/",
       "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html",
       "https://content-security-policy.com/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-09",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Extensions_Handling",
+    "cwe_id": "CWE-693",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/693.html"
   },
   "SEC-OWASP-003": {
     "title": "Critical OWASP Defensive Control Gaps",
@@ -1323,6 +1818,10 @@
       "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html",
       "https://content-security-policy.com/",
       "https://helmetjs.github.io/"
-    ]
+    ],
+    "wstg_id": "WSTG-CONF-09",
+    "wstg_url": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Extensions_Handling",
+    "cwe_id": "CWE-693",
+    "cwe_url": "https://cwe.mitre.org/data/definitions/693.html"
   }
 }

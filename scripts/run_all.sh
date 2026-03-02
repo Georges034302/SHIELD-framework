@@ -6,14 +6,21 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/cli.sh"
 
 echo "================================================"
-echo "  SHIELD Security Assessment Framework"
+echo "  SHIELD Security Assessment Framework v2.0"
 echo "================================================"
 echo ""
 echo "Target(s): ${ARGS[*]}"
 echo "Output directory: $OUT"
+echo ""
+
+# Phase 6A: Display mode info
+display_mode_info
+if [[ "${RATE_AWARE:-false}" == "true" ]]; then
+    display_rate_aware_info
+    echo ""
+fi
 
 if [[ "${BRUTE_FORCE:-false}" == "true" ]]; then
-    echo ""
     echo "⚠⚠⚠  BRUTE FORCE MODE ACTIVE  ⚠⚠⚠"
     echo "  Only use against sites you own or have written authorisation for."
     echo "  Max 10 attempts per target. Stops on first lockout."
@@ -103,6 +110,15 @@ for script in "${STEPS[@]}"; do
     if [[ -f "$script_path" ]]; then
         echo "▶ Running $(basename "$script" .sh)..."
         bash "$script_path" "${ARGS[@]}" -o "$OUT" || echo "  ⚠ Warning: $script had errors"
+        
+        # Phase 6A: Check stability after each step
+        if ! check_stability; then
+            echo ""
+            echo "❌ Scan aborted due to target instability"
+            echo "Partial results available in: $OUT"
+            exit 1
+        fi
+        
         echo ""
     fi
 done
@@ -111,6 +127,10 @@ echo "================================================"
 echo "  Assessment Complete"
 echo "================================================"
 echo "Results saved to: $OUT"
+
+# Phase 6A: Display stability summary
+display_stability_stats
+
 echo ""
 echo "Generating consolidated report..."
 "$SCRIPT_DIR/generate_report.sh" -i "$OUT" -o "$OUT/report.md"
