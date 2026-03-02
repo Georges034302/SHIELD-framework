@@ -45,23 +45,23 @@ usage() {
   echo "  $0 --mode authorized --i-accept-risk --authorization-ref auth.pdf https://example.com"
 }
 
-# Default values
+# Default values (preserve parent exports if already set)
 ARGS=()
-BRUTE_FORCE=false
-WP_USER=""
-WP_PASS=""
+BRUTE_FORCE="${BRUTE_FORCE:-false}"
+WP_USER="${WP_USER:-}"
+WP_PASS="${WP_PASS:-}"
 
-# Phase 6A: Mode management
-SCAN_MODE="posture"
-ACCEPT_RISK=false
-AUTHORIZATION_REF=""
+# Phase 6A: Mode management (preserve parent exports)
+SCAN_MODE="${SCAN_MODE:-posture}"
+ACCEPT_RISK="${ACCEPT_RISK:-false}"
+AUTHORIZATION_REF="${AUTHORIZATION_REF:-}"
 
-# Phase 6A: Rate control
-RATE_AWARE=false
-ROTATE_UA=false
-DELAY_MIN_MS=500
-DELAY_MAX_MS=2000
-MAX_REQUESTS_PER_MINUTE=60
+# Phase 6A: Rate control (preserve parent exports)
+RATE_AWARE="${RATE_AWARE:-false}"
+ROTATE_UA="${ROTATE_UA:-false}"
+DELAY_MIN_MS="${DELAY_MIN_MS:-500}"
+DELAY_MAX_MS="${DELAY_MAX_MS:-2000}"
+MAX_REQUESTS_PER_MINUTE="${MAX_REQUESTS_PER_MINUTE:-60}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in

@@ -6,7 +6,7 @@
 
 ### Security Hardening & Infrastructure Exposure Lifecycle Diagnostics Framework
 
-> SHIELD is a dual-mode black-box security assessment framework with policy-driven controls, stability monitoring, OWASP WSTG alignment, and reproducible grading across 69 structured web security checks.
+> SHIELD is a dual-mode black-box security assessment framework, stability monitoring, OWASP WSTG alignment, and reproducible grading across 69 structured web security checks.
 
 ---
 

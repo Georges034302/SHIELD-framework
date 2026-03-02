@@ -62,7 +62,7 @@ for TARGET in "${ARGS[@]}"; do
     
     # Run check
     result=$(discover_auth_endpoints "$TARGET" || echo "SKIP|Discovery failed|Endpoints identified|INFO|")
-    IFS='|'read -r status found expected severity remediation_id <<< "$result"
+    IFS='|' read -r status found expected severity remediation_id <<< "$result"
     
     # Escape for JSON
     status_esc=$(json_escape "$status")
