@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`report.md` is the consolidated security assessment report produced by `generate_report.sh` after all 64 step scripts have run. It aggregates every `FAIL` and `WARN` across all six steps into a single graded Markdown document with executive summary, per-step findings tables, a WordPress section (when applicable), detailed remediation guidance keyed to `data/remediation.json`, an out-of-scope declaration, and a conclusion with prioritised next steps.
+`report.md` is the consolidated security assessment report produced by `generate_report.sh` after all 69 step scripts have run. It aggregates every `FAIL` and `WARN` across all six steps into a single graded Markdown document with executive summary, per-step findings tables, a WordPress section (when applicable), detailed remediation guidance keyed to `data/remediation.json`, an out-of-scope declaration, and a conclusion with prioritised next steps.
 
 **Location:** `<output_dir>/report.md` (default: `test_output/report.md`)
 
@@ -49,7 +49,7 @@
 | Total Issues | 7 |
 | Checks Passed | 48 |
 | Checks Skipped | 9 |      ← WP-only checks on non-WP target, or optional flags
-| Total Checks Run | 64 |
+| Total Checks Run | 69 |
 
 ---
 
@@ -182,7 +182,7 @@ The following security concerns are outside the scope of this black-box assessme
 
 **Report Generated:** 2026-02-27 10:30:00 UTC
 **Framework:** SHIELD v1.0.0
-**Total Checks:** 64 | **Issues Found:** 7 | **Grade:** C
+**Total Checks:** 69 | **Issues Found:** 7 | **Grade:** C
 **Documentation:** https://github.com/Georges034302/SHIELD-framework
 ```
 
