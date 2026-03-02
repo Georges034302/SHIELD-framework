@@ -1,9 +1,8 @@
-<table style="border: none;">
-  <tr>
-    <td style="border: none; padding: 0;"><img src="logos/shield.png" alt="SHIELD Logo" width="70"/></td>
-    <td style="border: none; padding-left: 10px;"><h1>SHIELD®</h1></td>
-  </tr>
-</table>
+<p align="left">
+  <img src="logos/shield.png" alt="SHIELD Logo" width="70" align="left" style="margin-right: 10px;"/>
+  <span style="font-size: 2em; font-weight: bold; line-height: 70px;">SHIELD®</span>
+</p>
+<br clear="left"/>
 
 ### Security Hardening & Infrastructure Exposure Lifecycle Diagnostics Framework
 
