@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Copyright © 2026 Georges Bou Ghantous. All Rights Reserved.
+# SHIELD® — Structured Website Security & Resilience Assessment Framework
+# This file is part of SHIELD Framework and is subject to the terms of the
+# All Rights Reserved license included in the LICENSE file.
+
 # Phase 5 - WordPress Debug Mode Exposure
 # Checks if WP_DEBUG is active via visible PHP errors on page,
 # exposed debug.log, and error log accessibility.

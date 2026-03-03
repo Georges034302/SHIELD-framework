@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Copyright © 2026 Georges Bou Ghantous. All Rights Reserved.
+# SHIELD® — Structured Website Security & Resilience Assessment Framework
+# This file is part of SHIELD Framework and is subject to the terms of the
+# All Rights Reserved license included in the LICENSE file.
+
 # SHIELD - WordPress Authentication
 # PURPOSE: Authenticate to WordPress and establish session for authenticated tests
 # Only runs if --user and --pass are provided

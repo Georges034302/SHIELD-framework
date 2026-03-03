@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Copyright © 2026 Georges Bou Ghantous. All Rights Reserved.
+# SHIELD® — Structured Website Security & Resilience Assessment Framework
+# This file is part of SHIELD Framework and is subject to the terms of the
+# All Rights Reserved license included in the LICENSE file.
+
 # Phase 5 - WordPress Plugin Vulnerability Scan
 # Enumerates plugins via readme.txt/changelog.txt, extracts versions,
 # checks against a curated list of known-critical CVEs.

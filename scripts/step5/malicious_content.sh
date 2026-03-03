@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Copyright © 2026 Georges Bou Ghantous. All Rights Reserved.
+# SHIELD® — Structured Website Security & Resilience Assessment Framework
+# This file is part of SHIELD Framework and is subject to the terms of the
+# All Rights Reserved license included in the LICENSE file.
+
 # Phase 5 - Malicious Content Detection
 # Scans page HTML for obfuscated JS, hidden iframes, cryptominers, pharma SEO,
 # injected external scripts, suspicious meta refresh, and base64 payloads.

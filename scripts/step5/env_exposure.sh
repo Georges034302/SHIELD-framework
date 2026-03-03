@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Copyright © 2026 Georges Bou Ghantous. All Rights Reserved.
+# SHIELD® — Structured Website Security & Resilience Assessment Framework
+# This file is part of SHIELD Framework and is subject to the terms of the
+# All Rights Reserved license included in the LICENSE file.
+
 # Phase 5 - Sensitive File Exposure
 # Probes .env, .git, private keys, config files, logs, and known secret paths.
 # Reports exact credential patterns found, not just HTTP 200.
